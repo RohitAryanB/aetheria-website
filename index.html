@@ -1,0 +1,2329 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aetheria University — Shape Tomorrow</title>
+<meta name="description" content="Aetheria University — A world-class institution for science, technology, management and the arts. Join 25,000 students from 80+ countries.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,700;0,900;1,300&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+/* ── TOKENS ──────────────────────────────────────────────────── */
+:root {
+  --bg: #f4f1eb;
+  --surface: #faf8f3;
+  --card: #ffffff;
+  --border: #e2ddd4;
+  --text: #1a1614;
+  --muted: #6b6460;
+  --accent: #c8522a;
+  --accent2: #2a5c8a;
+  --accent3: #3d8a5c;
+  --gold: #c9a84c;
+  --radius: 16px;
+  --shadow: 0 4px 24px rgba(0,0,0,.08);
+  --shadow-lg: 0 12px 48px rgba(0,0,0,.12);
+  --nav-h: 72px;
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-body: 'DM Sans', sans-serif;
+  --transition: .25s cubic-bezier(.4,0,.2,1);
+}
+[data-theme="dark"] {
+  --bg: #111010;
+  --surface: #1a1918;
+  --card: #221f1e;
+  --border: #2e2b28;
+  --text: #f0ece4;
+  --muted: #9e9690;
+  --shadow: 0 4px 24px rgba(0,0,0,.4);
+  --shadow-lg: 0 12px 48px rgba(0,0,0,.5);
+}
+
+/* ── RESET ───────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; font-size: 16px; }
+body { font-family: var(--font-body); background: var(--bg); color: var(--text);
+       transition: background var(--transition), color var(--transition); overflow-x: hidden; }
+a { color: inherit; text-decoration: none; }
+img { max-width: 100%; display: block; }
+button { cursor: pointer; border: none; background: none; font-family: inherit; }
+ul { list-style: none; }
+
+/* ── SCROLLBAR ───────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 99px; }
+
+/* ── ANNOUNCEMENT BANNER ─────────────────────────────────────── */
+#ann-banner {
+  background: var(--accent); color: #fff; font-size: .8rem; font-weight: 500;
+  padding: 8px 20px; display: flex; align-items: center; justify-content: center;
+  gap: 12px; position: relative; z-index: 200; letter-spacing: .02em;
+}
+#ann-banner .ticker { flex: 1; overflow: hidden; max-width: 700px; }
+#ann-banner .ticker-inner {
+  display: flex; gap: 60px; animation: ticker 28s linear infinite;
+  white-space: nowrap;
+}
+@keyframes ticker { from { transform: translateX(0) } to { transform: translateX(-50%) } }
+#ann-banner .close-ann { opacity: .7; font-size: 1.1rem; padding: 0 6px; }
+#ann-banner .close-ann:hover { opacity: 1; }
+
+/* ── NAVBAR ──────────────────────────────────────────────────── */
+#navbar {
+  position: sticky; top: 0; z-index: 150;
+  background: rgba(244,241,235,.92); backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  height: var(--nav-h); display: flex; align-items: center;
+  padding: 0 clamp(16px,4vw,56px);
+  transition: background var(--transition), box-shadow var(--transition);
+}
+[data-theme="dark"] #navbar { background: rgba(17,16,16,.92); }
+#navbar.scrolled { box-shadow: var(--shadow); }
+
+.nav-logo { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+.nav-logo .logo-mark {
+  width: 40px; height: 40px; background: var(--accent); border-radius: 10px;
+  display: grid; place-items: center; font-family: var(--font-display);
+  font-size: 1.2rem; font-weight: 900; color: #fff;
+}
+.nav-logo .logo-text { font-family: var(--font-display); font-weight: 700;
+  font-size: 1.1rem; line-height: 1.1; }
+.nav-logo .logo-text span { display: block; font-size: .65rem; font-family: var(--font-body);
+  font-weight: 400; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; }
+
+.nav-links { display: flex; align-items: center; gap: 2px; margin-left: auto; margin-right: 16px; }
+.nav-links a {
+  padding: 6px 12px; border-radius: 8px; font-size: .85rem; font-weight: 500;
+  color: var(--muted); transition: color var(--transition), background var(--transition);
+  position: relative;
+}
+.nav-links a:hover, .nav-links a.active { color: var(--text); background: var(--surface); }
+.nav-links a.active::after {
+  content: ''; position: absolute; bottom: -1px; left: 50%; transform: translateX(-50%);
+  width: 16px; height: 2px; background: var(--accent); border-radius: 99px;
+}
+
+.nav-actions { display: flex; align-items: center; gap: 8px; }
+#global-search-btn {
+  padding: 7px 14px; border-radius: 10px; background: var(--surface);
+  border: 1px solid var(--border); font-size: .82rem; color: var(--muted);
+  display: flex; align-items: center; gap: 6px; transition: all var(--transition);
+}
+#global-search-btn:hover { border-color: var(--accent); color: var(--text); }
+#theme-toggle {
+  width: 36px; height: 36px; border-radius: 10px; background: var(--surface);
+  border: 1px solid var(--border); display: grid; place-items: center;
+  font-size: 1rem; transition: all var(--transition);
+}
+#theme-toggle:hover { background: var(--card); }
+.btn-apply {
+  padding: 8px 18px; background: var(--accent); color: #fff; border-radius: 10px;
+  font-size: .83rem; font-weight: 600; transition: all var(--transition);
+  box-shadow: 0 2px 8px rgba(200,82,42,.35);
+}
+.btn-apply:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(200,82,42,.45); }
+#hamburger { display: none; flex-direction: column; gap: 5px; width: 36px;
+  height: 36px; justify-content: center; align-items: center; }
+#hamburger span { display: block; width: 22px; height: 2px; background: var(--text);
+  border-radius: 99px; transition: all var(--transition); }
+#hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+#hamburger.open span:nth-child(2) { opacity: 0; }
+#hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+.mobile-menu {
+  display: none; position: fixed; top: var(--nav-h); left: 0; right: 0;
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  padding: 16px; z-index: 140; flex-direction: column; gap: 4px;
+  box-shadow: var(--shadow-lg);
+}
+.mobile-menu.open { display: flex; }
+.mobile-menu a { padding: 10px 16px; border-radius: 10px; font-weight: 500;
+  color: var(--muted); transition: all var(--transition); }
+.mobile-menu a:hover { color: var(--text); background: var(--card); }
+
+/* ── PAGE SYSTEM ─────────────────────────────────────────────── */
+.page { display: none; animation: fadeUp .4s ease both; }
+.page.active { display: block; }
+@keyframes fadeUp { from { opacity:0; transform: translateY(12px) } to { opacity:1; transform: translateY(0) } }
+
+/* ── HERO ────────────────────────────────────────────────────── */
+#hero {
+  min-height: 92vh; display: grid; grid-template-columns: 1fr 1fr;
+  gap: 40px; align-items: center; padding: clamp(40px,8vh,100px) clamp(20px,5vw,80px);
+  position: relative; overflow: hidden;
+}
+.hero-bg-shape {
+  position: absolute; right: -100px; top: -80px; width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(200,82,42,.12) 0%, transparent 70%);
+  border-radius: 50%; pointer-events: none;
+}
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px;
+  background: rgba(200,82,42,.1); border: 1px solid rgba(200,82,42,.25);
+  border-radius: 99px; font-size: .75rem; font-weight: 600; color: var(--accent);
+  letter-spacing: .04em; text-transform: uppercase; margin-bottom: 20px;
+}
+.hero-badge::before { content: '●'; font-size: .5rem; animation: blink 2s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+.hero-title {
+  font-family: var(--font-display); font-size: clamp(2.8rem, 5.5vw, 5rem);
+  font-weight: 900; line-height: 1.05; letter-spacing: -.02em; margin-bottom: 24px;
+}
+.hero-title em { font-style: italic; color: var(--accent); font-weight: 300; }
+.hero-desc { font-size: 1.05rem; color: var(--muted); line-height: 1.7;
+  max-width: 480px; margin-bottom: 36px; }
+.hero-ctas { display: flex; gap: 12px; flex-wrap: wrap; }
+.btn-primary {
+  padding: 13px 28px; background: var(--accent); color: #fff; border-radius: 12px;
+  font-weight: 600; font-size: .93rem; transition: all var(--transition);
+  box-shadow: 0 4px 16px rgba(200,82,42,.4);
+}
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(200,82,42,.5); }
+.btn-secondary {
+  padding: 13px 28px; border: 1.5px solid var(--border); border-radius: 12px;
+  font-weight: 600; font-size: .93rem; color: var(--text);
+  transition: all var(--transition); background: var(--card);
+}
+.btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+.hero-stats { display: flex; gap: 32px; margin-top: 48px; flex-wrap: wrap; }
+.stat { }
+.stat .num {
+  font-family: var(--font-display); font-size: 2.2rem; font-weight: 700;
+  color: var(--accent); line-height: 1;
+}
+.stat .lbl { font-size: .8rem; color: var(--muted); margin-top: 4px; }
+
+.hero-visual {
+  position: relative; display: grid; gap: 14px;
+  grid-template-columns: 1fr 1fr; grid-template-rows: auto auto;
+}
+.hero-card {
+  background: var(--card); border-radius: var(--radius); padding: 20px;
+  border: 1px solid var(--border); box-shadow: var(--shadow);
+  transition: transform var(--transition), box-shadow var(--transition);
+}
+.hero-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+.hero-card.featured { grid-column: span 2; background: var(--accent); color: #fff;
+  display: flex; align-items: center; gap: 20px; }
+.hero-card.featured .icon { font-size: 2.5rem; }
+.hero-card .card-title { font-weight: 700; margin-bottom: 4px; font-size: .9rem; }
+.hero-card .card-sub { font-size: .78rem; opacity: .7; }
+.hero-card .card-stat { font-family: var(--font-display); font-size: 1.8rem;
+  font-weight: 700; color: var(--accent); }
+[data-theme="dark"] .hero-card.featured .card-stat { color: #fff; }
+.hero-card.featured .card-stat { color: rgba(255,255,255,.9); }
+.hero-card .icon-sm { font-size: 1.8rem; margin-bottom: 8px; }
+
+/* ── SECTION COMMONS ─────────────────────────────────────────── */
+.section { padding: clamp(48px,8vw,96px) clamp(20px,5vw,80px); }
+.section-tag {
+  font-size: .72rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--accent); margin-bottom: 10px; display: flex; align-items: center; gap: 8px;
+}
+.section-tag::before { content: ''; display: block; width: 24px; height: 2px; background: var(--accent); }
+.section-title {
+  font-family: var(--font-display); font-size: clamp(2rem, 3.5vw, 3rem);
+  font-weight: 700; line-height: 1.1; margin-bottom: 16px;
+}
+.section-sub { color: var(--muted); font-size: 1rem; line-height: 1.7;
+  max-width: 560px; margin-bottom: 48px; }
+.grid-2 { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 24px; }
+.grid-3 { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+.grid-4 { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
+
+/* ── CARDS ───────────────────────────────────────────────────── */
+.card {
+  background: var(--card); border-radius: var(--radius); border: 1px solid var(--border);
+  overflow: hidden; box-shadow: var(--shadow); transition: transform var(--transition), box-shadow var(--transition);
+}
+.card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+.card-img {
+  width: 100%; height: 180px; object-fit: cover;
+  background: linear-gradient(135deg, var(--accent)20, var(--accent2)20);
+  display: flex; align-items: center; justify-content: center; font-size: 3rem;
+}
+.card-body { padding: 20px; }
+.card-label {
+  font-size: .7rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--accent); margin-bottom: 8px;
+}
+.card-title2 { font-weight: 700; font-size: 1.05rem; margin-bottom: 8px; line-height: 1.3; }
+.card-text { font-size: .85rem; color: var(--muted); line-height: 1.6; }
+.card-footer { padding: 12px 20px; border-top: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between; font-size: .8rem; color: var(--muted); }
+.tag { display: inline-block; padding: 3px 10px; background: var(--surface);
+  border-radius: 99px; font-size: .73rem; font-weight: 600; color: var(--muted);
+  border: 1px solid var(--border); }
+.tag.accent { background: rgba(200,82,42,.1); color: var(--accent); border-color: rgba(200,82,42,.2); }
+
+/* ── DEPT COLORS ─────────────────────────────────────────────── */
+.dept-icon {
+  width: 56px; height: 56px; border-radius: 14px; display: grid; place-items: center;
+  font-size: 1.6rem; margin-bottom: 16px; flex-shrink: 0;
+}
+.dept-eng { background: rgba(200,82,42,.15); }
+.dept-sci { background: rgba(42,92,138,.15); }
+.dept-mgmt { background: rgba(61,138,92,.15); }
+.dept-arts { background: rgba(201,168,76,.15); }
+
+/* ── SEARCH BAR ──────────────────────────────────────────────── */
+.search-wrap { position: relative; max-width: 520px; }
+.search-wrap input {
+  width: 100%; padding: 13px 20px 13px 46px; border-radius: 12px;
+  border: 1.5px solid var(--border); background: var(--card); color: var(--text);
+  font-size: .93rem; font-family: inherit; transition: border-color var(--transition);
+  outline: none;
+}
+.search-wrap input:focus { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(200,82,42,.1); }
+.search-wrap .search-icon {
+  position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+  font-size: 1rem; color: var(--muted); pointer-events: none;
+}
+
+/* ── FILTER PILLS ────────────────────────────────────────────── */
+.filter-pills { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 32px; }
+.pill {
+  padding: 6px 16px; border-radius: 99px; border: 1.5px solid var(--border);
+  background: var(--card); font-size: .8rem; font-weight: 600; color: var(--muted);
+  cursor: pointer; transition: all var(--transition);
+}
+.pill.active, .pill:hover { border-color: var(--accent); color: var(--accent);
+  background: rgba(200,82,42,.06); }
+
+/* ── DEPT GRID CARD ──────────────────────────────────────────── */
+.dept-card {
+  background: var(--card); border-radius: var(--radius); border: 1px solid var(--border);
+  padding: 24px; box-shadow: var(--shadow); cursor: pointer;
+  transition: transform var(--transition), box-shadow var(--transition);
+  display: flex; flex-direction: column;
+}
+.dept-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+.dept-card .dept-name { font-weight: 700; font-size: 1.05rem; margin-bottom: 6px; }
+.dept-card .dept-meta { font-size: .8rem; color: var(--muted); display: flex; gap: 12px; flex-wrap: wrap; }
+.dept-card .dept-programs { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 6px; }
+.dept-card .arrow-btn {
+  margin-top: auto; padding-top: 16px; display: flex; align-items: center; gap: 6px;
+  font-size: .8rem; font-weight: 600; color: var(--accent);
+}
+
+/* ── FACULTY CARD ────────────────────────────────────────────── */
+.faculty-card {
+  background: var(--card); border-radius: var(--radius); border: 1px solid var(--border);
+  padding: 20px; display: flex; gap: 16px; align-items: flex-start;
+  box-shadow: var(--shadow); transition: transform var(--transition);
+}
+.faculty-card:hover { transform: translateY(-3px); }
+.faculty-avatar {
+  width: 56px; height: 56px; border-radius: 14px; flex-shrink: 0;
+  display: grid; place-items: center; font-size: 1.4rem; font-weight: 700;
+  color: #fff; font-family: var(--font-display);
+}
+.faculty-info .name { font-weight: 700; font-size: .95rem; margin-bottom: 3px; }
+.faculty-info .role { font-size: .78rem; color: var(--muted); margin-bottom: 6px; }
+.faculty-info .spec { font-size: .75rem; color: var(--accent); font-weight: 600; }
+
+/* ── DEPT DETAIL ─────────────────────────────────────────────── */
+#dept-detail { display: none; }
+#dept-detail.show { display: block; }
+.dept-hero {
+  padding: clamp(40px,6vw,80px) clamp(20px,5vw,80px);
+  background: linear-gradient(135deg, var(--surface) 0%, var(--bg) 100%);
+  border-bottom: 1px solid var(--border);
+}
+.dept-hero .big-icon { font-size: 4rem; margin-bottom: 16px; }
+.dept-hero h1 { font-family: var(--font-display); font-size: clamp(2rem,4vw,3.5rem);
+  font-weight: 900; margin-bottom: 12px; }
+.dept-hero .sub { color: var(--muted); font-size: 1rem; max-width: 540px; }
+.dept-tabs {
+  display: flex; gap: 0; border-bottom: 1px solid var(--border);
+  padding: 0 clamp(20px,5vw,80px); overflow-x: auto; background: var(--surface);
+  position: sticky; top: var(--nav-h); z-index: 50;
+}
+.dept-tab {
+  padding: 14px 20px; font-size: .85rem; font-weight: 600; color: var(--muted);
+  border-bottom: 2px solid transparent; white-space: nowrap; cursor: pointer;
+  transition: all var(--transition);
+}
+.dept-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.dept-tab-content { display: none; padding: clamp(32px,5vw,64px) clamp(20px,5vw,80px); }
+.dept-tab-content.active { display: block; animation: fadeUp .3s ease; }
+
+/* ── PROGRAMS TABLE ──────────────────────────────────────────── */
+.programs-grid { display: grid; gap: 16px; }
+.program-row {
+  background: var(--card); border-radius: 12px; border: 1px solid var(--border);
+  padding: 20px; display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
+}
+.program-row .p-icon { font-size: 1.6rem; }
+.program-row .p-name { font-weight: 700; flex: 1; min-width: 200px; }
+.program-row .p-meta { display: flex; gap: 16px; }
+.program-row .p-meta span { font-size: .8rem; color: var(--muted); }
+.program-row .p-seats { 
+  padding: 4px 12px; background: rgba(42,92,138,.1); color: var(--accent2);
+  border-radius: 99px; font-size: .78rem; font-weight: 700;
+}
+
+/* ── EVENTS ──────────────────────────────────────────────────── */
+.event-card {
+  background: var(--card); border-radius: var(--radius); border: 1px solid var(--border);
+  padding: 20px; display: flex; gap: 20px; align-items: flex-start;
+  box-shadow: var(--shadow); transition: transform var(--transition);
+}
+.event-card:hover { transform: translateY(-3px); }
+.event-date {
+  background: var(--accent); color: #fff; border-radius: 10px;
+  padding: 10px 14px; text-align: center; flex-shrink: 0; min-width: 54px;
+}
+.event-date .day { font-family: var(--font-display); font-size: 1.6rem; font-weight: 900; line-height: 1; }
+.event-date .mon { font-size: .7rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
+.event-info .title { font-weight: 700; margin-bottom: 4px; }
+.event-info .desc { font-size: .83rem; color: var(--muted); line-height: 1.6; }
+
+/* ── TIMELINE ────────────────────────────────────────────────── */
+.timeline { position: relative; padding-left: 32px; }
+.timeline::before { content: ''; position: absolute; left: 6px; top: 0; bottom: 0;
+  width: 2px; background: var(--border); }
+.timeline-item { position: relative; margin-bottom: 32px; }
+.timeline-item::before { content: ''; position: absolute; left: -29px; top: 6px;
+  width: 12px; height: 12px; border-radius: 50%; background: var(--accent);
+  border: 2px solid var(--card); box-shadow: 0 0 0 2px var(--accent); }
+.timeline-item .year { font-size: .75rem; font-weight: 700; color: var(--accent);
+  letter-spacing: .06em; margin-bottom: 4px; }
+.timeline-item .event { font-weight: 600; font-size: .93rem; margin-bottom: 4px; }
+.timeline-item .detail { font-size: .82rem; color: var(--muted); line-height: 1.5; }
+
+/* ── STATS STRIP ─────────────────────────────────────────────── */
+.stats-strip {
+  background: var(--accent); color: #fff; padding: 48px clamp(20px,5vw,80px);
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(160px,1fr)); gap: 32px;
+  text-align: center;
+}
+.stats-strip .s-num { font-family: var(--font-display); font-size: 2.8rem; font-weight: 900; }
+.stats-strip .s-lbl { font-size: .83rem; opacity: .85; margin-top: 4px; }
+
+/* ── TESTIMONIALS ────────────────────────────────────────────── */
+.testimonial-card {
+  background: var(--card); border-radius: var(--radius); border: 1px solid var(--border);
+  padding: 28px; box-shadow: var(--shadow); position: relative;
+}
+.testimonial-card .quote { font-size: 3rem; color: var(--accent); opacity: .3;
+  position: absolute; top: 12px; right: 20px; font-family: Georgia; line-height: 1; }
+.testimonial-card .text { font-size: .93rem; line-height: 1.7; color: var(--muted);
+  margin-bottom: 20px; }
+.testimonial-card .author { display: flex; align-items: center; gap: 12px; }
+.testimonial-card .avatar { width: 42px; height: 42px; border-radius: 50%;
+  background: var(--accent); display: grid; place-items: center; color: #fff;
+  font-weight: 700; font-size: .9rem; }
+.testimonial-card .author-info .name { font-weight: 700; font-size: .88rem; }
+.testimonial-card .author-info .batch { font-size: .78rem; color: var(--muted); }
+
+/* ── PLACEMENT STATS ─────────────────────────────────────────── */
+.placement-highlight {
+  background: linear-gradient(135deg, var(--accent), #e06842);
+  border-radius: var(--radius); color: #fff; padding: 36px;
+  display: flex; flex-direction: column; gap: 16px;
+}
+.placement-highlight .big-num { font-family: var(--font-display); font-size: 4rem; font-weight: 900; }
+.company-logos { display: flex; flex-wrap: wrap; gap: 12px; }
+.company-badge {
+  padding: 8px 16px; background: var(--card); border-radius: 10px;
+  font-size: .82rem; font-weight: 700; color: var(--text); border: 1px solid var(--border);
+}
+
+/* ── CONTACT FORM ────────────────────────────────────────────── */
+.form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px,1fr)); gap: 16px; }
+.form-group { display: flex; flex-direction: column; gap: 6px; }
+.form-group label { font-size: .82rem; font-weight: 600; color: var(--muted); }
+.form-group input, .form-group select, .form-group textarea {
+  padding: 11px 16px; border-radius: 10px; border: 1.5px solid var(--border);
+  background: var(--card); color: var(--text); font-size: .88rem; font-family: inherit;
+  outline: none; transition: border-color var(--transition);
+}
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+  border-color: var(--accent); box-shadow: 0 0 0 4px rgba(200,82,42,.1);
+}
+.form-group textarea { resize: vertical; min-height: 110px; }
+.form-success {
+  display: none; padding: 16px; background: rgba(61,138,92,.1);
+  border: 1px solid rgba(61,138,92,.25); border-radius: 10px;
+  color: var(--accent3); font-weight: 600; font-size: .9rem; text-align: center;
+}
+.form-success.show { display: block; animation: fadeUp .3s ease; }
+
+/* ── CAMPUS GALLERY ──────────────────────────────────────────── */
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(2, 200px);
+  gap: 12px;
+}
+.gallery-item {
+  border-radius: 12px; overflow: hidden; cursor: pointer;
+  transition: transform var(--transition);
+}
+.gallery-item:hover { transform: scale(.98); }
+.gallery-item:first-child { grid-column: span 2; grid-row: span 2; }
+.gallery-img {
+  width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
+  font-size: 3rem; font-weight: 900; color: rgba(255,255,255,.7);
+  background: linear-gradient(135deg, var(--c1), var(--c2));
+}
+
+/* ── RESEARCH CARD ───────────────────────────────────────────── */
+.research-card {
+  background: var(--card); border-radius: var(--radius); border: 1px solid var(--border);
+  padding: 24px; box-shadow: var(--shadow); transition: transform var(--transition);
+}
+.research-card:hover { transform: translateY(-4px); }
+.research-card .r-status {
+  display: inline-block; padding: 3px 10px; border-radius: 99px; font-size: .72rem; font-weight: 700;
+  margin-bottom: 12px;
+}
+.r-status.ongoing { background: rgba(61,138,92,.12); color: var(--accent3); }
+.r-status.completed { background: rgba(42,92,138,.12); color: var(--accent2); }
+.r-status.funded { background: rgba(201,168,76,.15); color: var(--gold); }
+
+/* ── STUDENT DASHBOARD ───────────────────────────────────────── */
+.dashboard-grid {
+  display: grid; grid-template-columns: 280px 1fr; gap: 24px;
+  align-items: start;
+}
+
+.student-avatar {
+  width: 80px; height: 80px; border-radius: 50%; background: var(--accent);
+  display: grid; place-items: center; font-size: 2rem; color: #fff; margin: 0 auto 16px;
+}
+.student-profile-card .s-name { font-weight: 700; font-size: 1.1rem; margin-bottom: 4px; }
+.student-profile-card .s-info { font-size: .82rem; color: var(--muted); margin-bottom: 16px; }
+.progress-bar-wrap { text-align: left; margin-top: 16px; }
+.progress-bar-wrap label { font-size: .75rem; font-weight: 600; color: var(--muted);
+  display: flex; justify-content: space-between; margin-bottom: 5px; }
+.progress-bar { height: 6px; background: var(--border); border-radius: 99px; overflow: hidden; }
+.progress-bar .fill { height: 100%; border-radius: 99px; background: var(--accent);
+  transition: width 1s ease; }
+.course-list { display: flex; flex-direction: column; gap: 10px; }
+.course-item {
+  background: var(--card); border-radius: 12px; border: 1px solid var(--border);
+  padding: 16px; display: flex; align-items: center; gap: 16px;
+}
+.course-item .c-icon { font-size: 1.5rem; }
+.course-item .c-name { font-weight: 600; font-size: .9rem; margin-bottom: 2px; }
+.course-item .c-meta { font-size: .78rem; color: var(--muted); }
+.course-item .c-grade {
+  margin-left: auto; font-family: var(--font-display); font-size: 1.3rem;
+  font-weight: 900; color: var(--accent3);
+}
+
+/* ── ADMISSIONS STEPS ────────────────────────────────────────── */
+.steps-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr)); gap: 20px; }
+.step-card {
+  background: var(--card); border-radius: var(--radius); border: 1px solid var(--border);
+  padding: 24px; text-align: center; box-shadow: var(--shadow);
+  position: relative; overflow: hidden;
+}
+.step-card::before {
+  content: attr(data-step); position: absolute; top: -10px; right: 10px;
+  font-family: var(--font-display); font-size: 5rem; font-weight: 900;
+  color: var(--accent); opacity: .08; line-height: 1;
+}
+.step-card .step-icon { font-size: 2rem; margin-bottom: 12px; }
+.step-card .step-title { font-weight: 700; margin-bottom: 8px; }
+.step-card .step-desc { font-size: .83rem; color: var(--muted); line-height: 1.6; }
+
+/* ── AI CHATBOT ──────────────────────────────────────────────── */
+#ai-fab {
+  position: fixed; bottom: 28px; right: 28px; z-index: 300;
+  width: 56px; height: 56px; border-radius: 16px; background: var(--accent);
+  color: #fff; font-size: 1.4rem; box-shadow: 0 8px 28px rgba(200,82,42,.5);
+  transition: all .3s cubic-bezier(.34,1.56,.64,1); display: grid; place-items: center;
+}
+#ai-fab:hover { transform: scale(1.08); box-shadow: 0 12px 36px rgba(200,82,42,.6); }
+#ai-fab.open { border-radius: 12px; background: var(--card);
+  color: var(--text); border: 1px solid var(--border); box-shadow: var(--shadow); }
+
+#chatbox {
+  position: fixed; bottom: 96px; right: 28px; z-index: 300;
+  width: 360px; max-height: 520px; border-radius: 20px;
+  background: var(--card); border: 1px solid var(--border); box-shadow: var(--shadow-lg);
+  display: flex; flex-direction: column; overflow: hidden;
+  transform: scale(.85) translateY(20px); opacity: 0; pointer-events: none;
+  transition: all .3s cubic-bezier(.34,1.56,.64,1); transform-origin: bottom right;
+}
+#chatbox.show { transform: scale(1) translateY(0); opacity: 1; pointer-events: all; }
+.chat-header {
+  padding: 16px 20px; background: var(--accent); color: #fff;
+  display: flex; align-items: center; gap: 12px;
+}
+.chat-header .bot-icon { font-size: 1.4rem; }
+.chat-header .bot-info .name { font-weight: 700; font-size: .93rem; }
+.chat-header .bot-info .status { font-size: .72rem; opacity: .8; display: flex; align-items: center; gap: 4px; }
+.chat-header .bot-info .status::before { content: '●'; font-size: .5rem; animation: blink 1.5s infinite; }
+.chat-messages {
+  flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px;
+  scroll-behavior: smooth;
+}
+.msg { max-width: 85%; animation: fadeUp .2s ease; }
+.msg.bot { align-self: flex-start; }
+.msg.user { align-self: flex-end; }
+.msg-bubble {
+  padding: 10px 14px; border-radius: 14px; font-size: .85rem; line-height: 1.5;
+}
+.msg.bot .msg-bubble { background: var(--surface); border-radius: 4px 14px 14px 14px; color: var(--text); }
+.msg.user .msg-bubble { background: var(--accent); color: #fff; border-radius: 14px 14px 4px 14px; }
+.msg-time { font-size: .68rem; color: var(--muted); margin-top: 3px; padding: 0 2px; }
+.chat-suggestions { padding: 8px 16px; display: flex; gap: 6px; flex-wrap: wrap; border-top: 1px solid var(--border); }
+.sug-btn {
+  padding: 5px 12px; border-radius: 99px; background: var(--surface);
+  border: 1px solid var(--border); font-size: .75rem; font-weight: 600; color: var(--muted);
+  cursor: pointer; transition: all var(--transition); white-space: nowrap;
+}
+.sug-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(200,82,42,.06); }
+.chat-input-row {
+  padding: 12px 16px; border-top: 1px solid var(--border);
+  display: flex; gap: 8px;
+}
+.chat-input-row input {
+  flex: 1; padding: 9px 14px; border-radius: 10px; border: 1.5px solid var(--border);
+  background: var(--surface); color: var(--text); font-size: .85rem; font-family: inherit;
+  outline: none; transition: border-color var(--transition);
+}
+.chat-input-row input:focus { border-color: var(--accent); }
+.chat-send {
+  padding: 9px 14px; border-radius: 10px; background: var(--accent); color: #fff;
+  font-size: .85rem; font-weight: 600; transition: all var(--transition);
+}
+.chat-send:hover { background: #b84826; }
+.typing { display: flex; gap: 4px; align-items: center; padding: 10px 14px; }
+.typing span { width: 6px; height: 6px; border-radius: 50%; background: var(--muted);
+  animation: bounce .6s infinite; }
+.typing span:nth-child(2) { animation-delay: .15s; }
+.typing span:nth-child(3) { animation-delay: .3s; }
+@keyframes bounce { 0%,80%,100%{transform:translateY(0)} 40%{transform:translateY(-5px)} }
+
+/* ── GLOBAL SEARCH MODAL ─────────────────────────────────────── */
+#search-modal {
+  position: fixed; inset: 0; z-index: 400; background: rgba(0,0,0,.6);
+  backdrop-filter: blur(8px); display: none; align-items: flex-start;
+  justify-content: center; padding-top: 80px;
+}
+#search-modal.show { display: flex; }
+.search-modal-box {
+  width: 100%; max-width: 600px; background: var(--card);
+  border-radius: 20px; border: 1px solid var(--border); overflow: hidden;
+  box-shadow: var(--shadow-lg); animation: fadeUp .2s ease;
+}
+.search-modal-input {
+  width: 100%; padding: 18px 24px; font-size: 1rem; border: none;
+  background: transparent; color: var(--text); font-family: inherit; outline: none;
+  border-bottom: 1px solid var(--border);
+}
+.search-results { padding: 12px; max-height: 360px; overflow-y: auto; }
+.search-result-item {
+  padding: 12px 14px; border-radius: 10px; cursor: pointer; transition: background var(--transition);
+  display: flex; align-items: center; gap: 12px;
+}
+.search-result-item:hover { background: var(--surface); }
+.search-result-item .sri-icon { font-size: 1.1rem; color: var(--accent); width: 28px; flex-shrink: 0; text-align: center; }
+.search-result-item .sri-title { font-weight: 600; font-size: .9rem; }
+.search-result-item .sri-sub { font-size: .78rem; color: var(--muted); }
+
+/* ── BREADCRUMB ──────────────────────────────────────────────── */
+.breadcrumb { display: flex; align-items: center; gap: 6px; font-size: .8rem;
+  color: var(--muted); padding: 16px clamp(20px,5vw,80px); border-bottom: 1px solid var(--border); }
+.breadcrumb a { color: var(--muted); transition: color var(--transition); }
+.breadcrumb a:hover { color: var(--accent); }
+.breadcrumb span { color: var(--text); font-weight: 600; }
+.breadcrumb .sep { opacity: .4; }
+
+/* ── PAGE HERO (non-home) ────────────────────────────────────── */
+.page-hero {
+  padding: clamp(48px,6vw,80px) clamp(20px,5vw,80px);
+  background: linear-gradient(135deg, var(--surface) 0%, var(--bg) 100%);
+  border-bottom: 1px solid var(--border);
+}
+.page-hero .tag { font-size: .7rem; font-weight: 700; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--accent); margin-bottom: 10px; display: flex;
+  align-items: center; gap: 6px; }
+.page-hero .tag::before { content: ''; width: 20px; height: 2px; background: var(--accent); display: block; }
+.page-hero h1 { font-family: var(--font-display); font-size: clamp(2.2rem,4vw,3.5rem);
+  font-weight: 900; margin-bottom: 12px; }
+.page-hero p { color: var(--muted); font-size: 1rem; max-width: 560px; line-height: 1.7; }
+
+/* ── ACCORDION ───────────────────────────────────────────────── */
+.accordion { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.acc-item { border-bottom: 1px solid var(--border); }
+.acc-item:last-child { border-bottom: none; }
+.acc-header {
+  padding: 18px 24px; font-weight: 600; cursor: pointer; display: flex;
+  justify-content: space-between; align-items: center; transition: background var(--transition);
+  background: var(--card);
+}
+.acc-header:hover { background: var(--surface); }
+.acc-header .chevron { transition: transform var(--transition); }
+.acc-body { display: none; padding: 16px 24px; color: var(--muted); font-size: .9rem;
+  line-height: 1.7; background: var(--surface); }
+.acc-item.open .acc-header .chevron { transform: rotate(180deg); }
+.acc-item.open .acc-body { display: block; }
+
+/* ── ALUMNI ──────────────────────────────────────────────────── */
+.alumni-card {
+  background: var(--card); border-radius: var(--radius); border: 1px solid var(--border);
+  padding: 24px; box-shadow: var(--shadow); transition: transform var(--transition);
+}
+.alumni-card:hover { transform: translateY(-4px); }
+.alumni-card .alu-photo {
+  width: 64px; height: 64px; border-radius: 50%; background: var(--accent);
+  display: grid; place-items: center; color: #fff; font-size: 1.4rem; font-weight: 700;
+  font-family: var(--font-display); margin-bottom: 14px;
+}
+.alumni-card .alu-name { font-weight: 700; font-size: 1rem; margin-bottom: 3px; }
+.alumni-card .alu-role { font-size: .8rem; color: var(--accent); font-weight: 600; margin-bottom: 4px; }
+.alumni-card .alu-company { font-size: .8rem; color: var(--muted); }
+.alumni-card .alu-quote { font-size: .82rem; color: var(--muted); margin-top: 12px;
+  border-left: 2px solid var(--accent); padding-left: 10px; line-height: 1.6; font-style: italic; }
+
+/* ── FOOTER ──────────────────────────────────────────────────── */
+footer {
+  background: var(--surface); border-top: 1px solid var(--border);
+  padding: clamp(40px,6vw,72px) clamp(20px,5vw,80px) 32px;
+}
+.footer-grid { display: grid; grid-template-columns: 2fr repeat(3, 1fr); gap: 48px; margin-bottom: 48px; }
+.footer-col h4 { font-weight: 700; margin-bottom: 16px; font-size: .9rem; }
+.footer-col p { font-size: .83rem; color: var(--muted); line-height: 1.7; }
+.footer-col ul li { margin-bottom: 8px; }
+.footer-col ul a { font-size: .83rem; color: var(--muted); transition: color var(--transition); }
+.footer-col ul a:hover { color: var(--accent); }
+.footer-bottom { border-top: 1px solid var(--border); padding-top: 24px;
+  display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+.footer-bottom p { font-size: .8rem; color: var(--muted); }
+.social-links { display: flex; gap: 10px; }
+.social-link {
+  width: 36px; height: 36px; border-radius: 10px; background: var(--card);
+  border: 1px solid var(--border); display: grid; place-items: center; font-size: .9rem;
+  transition: all var(--transition);
+}
+.social-link:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+/* ── RESPONSIVE ──────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  #hero { grid-template-columns: 1fr; }
+  .hero-visual { display: none; }
+  .dashboard-grid { grid-template-columns: 1fr; }
+  .footer-grid { grid-template-columns: 1fr 1fr; }
+  .gallery-grid { grid-template-columns: repeat(2, 1fr); grid-template-rows: auto; }
+  .gallery-item:first-child { grid-column: span 2; }
+}
+@media (max-width: 768px) {
+  .nav-links, .btn-apply { display: none; }
+  #hamburger { display: flex; }
+  #global-search-btn .search-label { display: none; }
+  #chatbox { width: calc(100vw - 40px); right: 20px; bottom: 86px; }
+  #ai-fab { right: 20px; bottom: 20px; }
+}
+@media (max-width: 540px) {
+  .footer-grid { grid-template-columns: 1fr; }
+  .gallery-grid { grid-template-columns: 1fr; }
+  .gallery-item:first-child { grid-column: span 1; }
+}
+</style>
+</head>
+<body>
+ 
+
+<!-- ANNOUNCEMENT BANNER -->
+<div id="ann-banner">
+  <div class="ticker">
+    <div class="ticker-inner" id="ticker-content">
+      <span>🎓 Admissions Open 2025–26 — Apply before June 30th</span>
+      <span>🏆 Aetheria ranked #12 in National Institutional Rankings 2025</span>
+      <span>📢 International Research Symposium — April 18-20, 2025</span>
+      <span>💼 Campus Placement Drive: 180+ companies visiting this semester</span>
+      <span>🎓 Admissions Open 2025–26 — Apply before June 30th</span>
+      <span>🏆 Aetheria ranked #12 in National Institutional Rankings 2025</span>
+      <span>📢 International Research Symposium — April 18-20, 2025</span>
+      <span>💼 Campus Placement Drive: 180+ companies visiting this semester</span>
+    </div>
+  </div>
+  <button class="close-ann" onclick="document.getElementById('ann-banner').style.display='none'">✕</button>
+</div>
+
+<!-- NAVBAR -->
+<nav id="navbar">
+  <div class="nav-logo" onclick="showPage('home')" style="cursor:pointer">
+    <div class="logo-mark">A</div>
+    <div class="logo-text">Aetheria University<span>Est. 1962 · Excellence in Education</span></div>
+  </div>
+  <div class="nav-links" id="nav-links">
+    <a href="#" onclick="showPage('home')" class="active" data-page="home">Home</a>
+    <a href="#" onclick="showPage('about')" data-page="about">About</a>
+    <a href="#" onclick="showPage('departments')" data-page="departments">Departments</a>
+    <a href="#" onclick="showPage('academics')" data-page="academics">Academics</a>
+    <a href="#" onclick="showPage('admissions')" data-page="admissions">Admissions</a>
+    <a href="#" onclick="showPage('placements')" data-page="placements">Placements</a>
+    <a href="#" onclick="showPage('research')" data-page="research">Research</a>
+    <a href="#" onclick="showPage('campus')" data-page="campus">Campus Life</a>
+    
+    <a href="#" onclick="showPage('alumni')" data-page="alumni">Alumni</a>
+    <a href="#" onclick="showPage('contact')" data-page="contact">Contact</a>
+  </div>
+  <div class="nav-actions">
+    <button id="global-search-btn" onclick="openSearch()">
+      🔍 <span class="search-label">Search</span>
+    </button>
+    <button id="theme-toggle" onclick="toggleTheme()" title="Toggle theme">🌙</button>
+    <a href="#" class="btn-apply" onclick="showPage('admissions');return false">Apply Now</a>
+  </div>
+  <button id="hamburger" onclick="toggleMobile()">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobile-menu">
+  <a href="#" onclick="showPage('home');closeMobile()">🏠 Home</a>
+  <a href="#" onclick="showPage('about');closeMobile()">ℹ️ About</a>
+  <a href="#" onclick="showPage('departments');closeMobile()">🏛️ Departments</a>
+  <a href="#" onclick="showPage('academics');closeMobile()">📚 Academics</a>
+  <a href="#" onclick="showPage('admissions');closeMobile()">📋 Admissions</a>
+  <a href="#" onclick="showPage('placements');closeMobile()">💼 Placements</a>
+  <a href="#" onclick="showPage('research');closeMobile()">🔬 Research</a>
+  <a href="#" onclick="showPage('campus');closeMobile()">🌿 Campus Life</a>
+  
+  <a href="#" onclick="showPage('alumni');closeMobile()">👥 Alumni</a>
+  <a href="#" onclick="showPage('contact');closeMobile()">📬 Contact</a>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- PAGE: HOME -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="page active" id="page-home">
+  <!-- HERO -->
+  <section id="hero">
+    <div class="hero-bg-shape"></div>
+    <div class="hero-content">
+      <div class="hero-badge">🌟 Ranked #12 in India 2025</div>
+      <h1 class="hero-title">Shape<br><em>Tomorrow</em><br>Start Today.</h1>
+      <p class="hero-desc">Aetheria University bridges rigorous scholarship with real-world impact. Join a community of 25,000 students, 1,400 faculty, and 150,000 alumni spanning 80 countries.</p>
+      <div class="hero-ctas">
+        <button class="btn-primary" onclick="showPage('admissions')">Explore Admissions</button>
+        <button class="btn-secondary" onclick="showPage('departments')">View Departments</button>
+      </div>
+      <div class="hero-stats">
+        <div class="stat"><div class="num">25K+</div><div class="lbl">Students</div></div>
+        <div class="stat"><div class="num">1,400</div><div class="lbl">Faculty</div></div>
+        <div class="stat"><div class="num">96%</div><div class="lbl">Placement Rate</div></div>
+        <div class="stat"><div class="num">280+</div><div class="lbl">Research Papers/yr</div></div>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="hero-card featured">
+        <div class="icon">🏆</div>
+        <div><div class="card-title">NIRF Ranking 2025</div><div class="card-stat">#12 Overall</div><div class="card-sub">Up 3 places from 2024</div></div>
+      </div>
+      <div class="hero-card">
+        <div class="icon-sm">🎓</div>
+        <div class="card-title">Degrees Offered</div>
+        <div class="card-stat">120+</div>
+        <div class="card-sub">UG, PG & PhD</div>
+      </div>
+      <div class="hero-card">
+        <div class="icon-sm">🌐</div>
+        <div class="card-title">Global Partners</div>
+        <div class="card-stat">48</div>
+        <div class="card-sub">Universities worldwide</div>
+      </div>
+      <div class="hero-card">
+        <div class="icon-sm">🔬</div>
+        <div class="card-title">Research Centres</div>
+        <div class="card-stat">32</div>
+        <div class="card-sub">State-of-art labs</div>
+      </div>
+      <div class="hero-card">
+        <div class="icon-sm">💰</div>
+        <div class="card-title">Scholarships</div>
+        <div class="card-stat">₹12Cr</div>
+        <div class="card-sub">Disbursed this year</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- QUICK LINKS -->
+  <section class="section" style="padding-top:0; padding-bottom: 32px;">
+    <div style="display:flex; gap:12px; flex-wrap:wrap;">
+      <button class="pill active" onclick="showPage('admissions')">📋 Apply Now</button>
+      <button class="pill" onclick="showPage('departments')">🏛️ Departments</button>
+      <button class="pill" onclick="showPage('research')">🔬 Research</button>
+      <button class="pill" onclick="showPage('placements')">💼 Placements</button>
+      <button class="pill" onclick="showPage('campus')">🌿 Campus Life</button>
+      <button class="pill" onclick="openSearch()">🔍 Search University</button>
+    </div>
+  </section>
+
+  <!-- FEATURED DEPARTMENTS -->
+  <section class="section">
+    <div class="section-tag">Academic Excellence</div>
+    <h2 class="section-title">World-Class Departments</h2>
+    <p class="section-sub">From cutting-edge engineering labs to internationally recognised management programmes, explore what defines Aetheria.</p>
+    <div class="grid-4" id="home-depts"></div>
+    <div style="margin-top:28px; text-align:center;">
+      <button class="btn-secondary" onclick="showPage('departments')">View All Departments →</button>
+    </div>
+  </section>
+
+  <!-- STATS -->
+  <div class="stats-strip">
+    <div><div class="s-num">63</div><div class="s-lbl">Years of Excellence</div></div>
+    <div><div class="s-num">25K+</div><div class="s-lbl">Current Students</div></div>
+    <div><div class="s-num">150K+</div><div class="s-lbl">Alumni Worldwide</div></div>
+    <div><div class="s-num">₹24Cr</div><div class="s-lbl">Annual Research Funding</div></div>
+    <div><div class="s-num">96%</div><div class="s-lbl">Placement Rate</div></div>
+    <div><div class="s-num">48</div><div class="s-lbl">Global Partner Universities</div></div>
+  </div>
+
+  <!-- EVENTS -->
+  <section class="section">
+    <div class="section-tag">What's Happening</div>
+    <h2 class="section-title">Upcoming Events</h2>
+    <div class="grid-2" id="events-list"></div>
+  </section>
+
+  <!-- TESTIMONIALS -->
+  <section class="section" style="background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
+    <div class="section-tag">Student Stories</div>
+    <h2 class="section-title">Words from Our Community</h2>
+    <div class="grid-3" id="testimonials-list"></div>
+  </section>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- PAGE: ABOUT -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="page" id="page-about">
+  <div class="breadcrumb"><a href="#" onclick="showPage('home')">Home</a><span class="sep">›</span><span>About</span></div>
+  <div class="page-hero">
+    <div class="tag">Our Story</div>
+    <h1>About Aetheria University</h1>
+    <p>Founded in 1962, Aetheria has grown from a small technical institute into a globally recognised, multi-disciplinary research university.</p>
+  </div>
+  <section class="section">
+    <div class="grid-2" style="gap:48px; align-items:start;">
+      <div>
+        <div class="section-tag">Our History</div>
+        <h2 class="section-title">Six Decades of Impact</h2>
+        <p style="color:var(--muted);line-height:1.8;margin-bottom:24px;">Aetheria University was established in 1962 by a visionary group of academics and industry leaders who believed that quality education could transform communities. Beginning with just 400 students and 4 departments, the university has expanded to become one of India's top-ranked institutions.</p>
+        <p style="color:var(--muted);line-height:1.8;">Today, Aetheria operates across a 200-acre campus featuring state-of-the-art laboratories, a central library with 1.2 million volumes, and modern student residences. Our 1,400 faculty members bring international expertise to every classroom.</p>
+      </div>
+      <div class="timeline">
+        <div class="timeline-item"><div class="year">1962</div><div class="event">Founded as Aetheria Institute of Technology</div><div class="detail">400 students, 4 departments, 80 faculty</div></div>
+        <div class="timeline-item"><div class="year">1978</div><div class="event">Granted University Status</div><div class="detail">Expanded to 12 departments and 2,500 students</div></div>
+        <div class="timeline-item"><div class="year">1991</div><div class="event">First International Research Centre</div><div class="detail">Indo-German Centre for Advanced Materials</div></div>
+        <div class="timeline-item"><div class="year">2004</div><div class="event">Management & Arts Schools Established</div><div class="detail">Became a truly multi-disciplinary institution</div></div>
+        <div class="timeline-item"><div class="year">2015</div><div class="event">NAAC 'A++' Accreditation</div><div class="detail">Highest grade awarded by National Assessment Authority</div></div>
+        <div class="timeline-item"><div class="year">2025</div><div class="event">NIRF Rank #12 Overall</div><div class="detail">25,000 students · 150,000 alumni · 32 research centres</div></div>
+      </div>
+    </div>
+  </section>
+  <section class="section" style="background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+    <div class="section-tag">Vision & Mission</div>
+    <div class="grid-2">
+      <div class="card"><div class="card-body">
+        <div style="font-size:2.5rem;margin-bottom:12px;">🔭</div>
+        <h3 style="font-family:var(--font-display);font-size:1.5rem;margin-bottom:12px;">Our Vision</h3>
+        <p style="color:var(--muted);line-height:1.8;">To be a globally pre-eminent university that creates and disseminates knowledge, nurtures talent and contributes to social good through research, education and public service.</p>
+      </div></div>
+      <div class="card"><div class="card-body">
+        <div style="font-size:2.5rem;margin-bottom:12px;">🎯</div>
+        <h3 style="font-family:var(--font-display);font-size:1.5rem;margin-bottom:12px;">Our Mission</h3>
+        <p style="color:var(--muted);line-height:1.8;">To provide rigorous, innovative, and interdisciplinary education; to advance knowledge through curiosity-driven and applied research; and to prepare graduates who serve as leaders of consequence in their fields and communities.</p>
+      </div></div>
+    </div>
+  </section>
+  <section class="section">
+    <div class="section-tag">Leadership</div>
+    <h2 class="section-title">University Leadership</h2>
+    <div class="grid-4" id="leadership-list"></div>
+  </section>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- PAGE: DEPARTMENTS -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="page" id="page-departments">
+  <div id="dept-list-view">
+    <div class="breadcrumb"><a href="#" onclick="showPage('home')">Home</a><span class="sep">›</span><span>Departments</span></div>
+    <div class="page-hero">
+      <div class="tag">Academic Units</div>
+      <h1>Our Departments</h1>
+      <p>Explore 18 world-class departments spanning engineering, sciences, management, and the arts.</p>
+    </div>
+    <section class="section">
+      <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center;margin-bottom:28px;">
+        <div class="search-wrap" style="flex:1;min-width:240px;">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="dept-search" placeholder="Search departments..." oninput="filterDepts()">
+        </div>
+      </div>
+      <div class="filter-pills" id="dept-filters">
+        <button class="pill active" onclick="setDeptFilter('all',this)">All</button>
+        <button class="pill" onclick="setDeptFilter('Engineering',this)">⚙️ Engineering</button>
+        <button class="pill" onclick="setDeptFilter('Science',this)">🔬 Science</button>
+        <button class="pill" onclick="setDeptFilter('Management',this)">📊 Management</button>
+        <button class="pill" onclick="setDeptFilter('Arts',this)">🎨 Arts & Humanities</button>
+      </div>
+      <div class="grid-3" id="dept-grid"></div>
+    </section>
+  </div>
+  <!-- DEPT DETAIL (injected) -->
+  <div id="dept-detail"></div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- PAGE: ACADEMICS -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="page" id="page-academics">
+  <div class="breadcrumb"><a href="#" onclick="showPage('home')">Home</a><span class="sep">›</span><span>Academics</span></div>
+  <div class="page-hero">
+    <div class="tag">Learning at Aetheria</div>
+    <h1>Academic Programmes</h1>
+    <p>From undergraduate to doctoral research — rigorous, flexible, and globally recognised.</p>
+  </div>
+  <section class="section">
+    <div class="section-tag">Programmes</div>
+    <h2 class="section-title">Choose Your Path</h2>
+    <div class="grid-3" id="programmes-grid"></div>
+  </section>
+  <section class="section" style="background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+    <div class="section-tag">FAQ</div>
+    <h2 class="section-title">Academic FAQs</h2>
+    <div class="accordion" id="academic-faq"></div>
+  </section>
+  <section class="section">
+    <div class="section-tag">Academic Calendar</div>
+    <h2 class="section-title">Key Dates 2025–26</h2>
+    <div class="grid-2" id="academic-cal"></div>
+  </section>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- PAGE: ADMISSIONS -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="page" id="page-admissions">
+  <div class="breadcrumb"><a href="#" onclick="showPage('home')">Home</a><span class="sep">›</span><span>Admissions</span></div>
+  <div class="page-hero">
+    <div class="tag">Join Us</div>
+    <h1>Admissions 2025–26</h1>
+    <p>Applications are now open. Discover how to become part of the Aetheria community.</p>
+  </div>
+  <section class="section">
+    <div class="section-tag">How to Apply</div>
+    <h2 class="section-title">Application Process</h2>
+    <div class="steps-grid" id="steps-grid"></div>
+  </section>
+  <section class="section" style="background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+    <div class="grid-2" style="gap:48px;">
+      <div>
+        <div class="section-tag">Eligibility</div>
+        <h2 class="section-title">Who Can Apply?</h2>
+        <div class="accordion" id="eligibility-acc"></div>
+      </div>
+      <div>
+        <div class="section-tag">Scholarships</div>
+        <h2 class="section-title">Financial Aid</h2>
+        <div id="scholarships-list"></div>
+      </div>
+    </div>
+  </section>
+  <section class="section">
+    <div class="section-tag">Apply Now</div>
+    <h2 class="section-title">Submit Application</h2>
+    <div style="max-width:640px;">
+      <div class="form-grid" id="application-form">
+        <div class="form-group"><label>Full Name</label><input type="text" placeholder="John Doe" id="ap-name"></div>
+        <div class="form-group"><label>Email Address</label><input type="email" placeholder="john@example.com" id="ap-email"></div>
+        <div class="form-group"><label>Phone</label><input type="tel" placeholder="+91 98765 43210" id="ap-phone"></div>
+        <div class="form-group"><label>Programme</label>
+          <select id="ap-prog"><option>B.Tech Computer Science</option><option>B.Tech Electronics</option><option>B.Tech Mechanical</option><option>MBA</option><option>M.Tech</option><option>PhD</option></select>
+        </div>
+        <div class="form-group" style="grid-column:span 2"><label>Message / Query</label><textarea placeholder="Any specific questions or details..."></textarea></div>
+      </div>
+      <div style="margin-top:20px;display:flex;gap:12px;align-items:center;">
+        <button class="btn-primary" onclick="submitApp()">Submit Application</button>
+        <span style="font-size:.8rem;color:var(--muted);">You'll receive a confirmation within 48 hrs</span>
+      </div>
+      <div class="form-success" id="app-success">✅ Application submitted! Our admissions team will contact you within 48 hours.</div>
+    </div>
+  </section>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- PAGE: PLACEMENTS -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="page" id="page-placements">
+  <div class="breadcrumb"><a href="#" onclick="showPage('home')">Home</a><span class="sep">›</span><span>Placements</span></div>
+  <div class="page-hero">
+    <div class="tag">Career Success</div>
+    <h1>Placements & Careers</h1>
+    <p>Our graduates land at the world's most respected organisations. Here's the record.</p>
+  </div>
+  <section class="section">
+    <div class="grid-2" style="gap:28px;align-items:start;">
+      <div class="placement-highlight">
+        <div style="font-size:.8rem;opacity:.8;font-weight:600;letter-spacing:.06em;text-transform:uppercase;">Placement Rate 2024</div>
+        <div class="big-num">96.4%</div>
+        <div style="font-size:1rem;opacity:.9;">of eligible graduates placed within 3 months</div>
+        <div style="margin-top:16px;font-size:.85rem;opacity:.8;">Highest ever — 3,840 students placed at 420+ companies</div>
+      </div>
+      <div style="display:grid;gap:16px;">
+        <div class="hero-card" style="background:var(--card);border:1px solid var(--border);">
+          <div class="card-title2">Highest Package 2024</div>
+          <div style="font-family:var(--font-display);font-size:2.4rem;font-weight:900;color:var(--accent);">₹62 LPA</div>
+          <div class="card-text">Google India — B.Tech Computer Science</div>
+        </div>
+        <div class="hero-card" style="background:var(--card);border:1px solid var(--border);">
+          <div class="card-title2">Average CTC (B.Tech)</div>
+          <div style="font-family:var(--font-display);font-size:2.4rem;font-weight:900;color:var(--accent2);">₹18.4 LPA</div>
+          <div class="card-text">Across all departments, Class of 2024</div>
+        </div>
+        <div class="hero-card" style="background:var(--card);border:1px solid var(--border);">
+          <div class="card-title2">International Offers</div>
+          <div style="font-family:var(--font-display);font-size:2.4rem;font-weight:900;color:var(--accent3);">142</div>
+          <div class="card-text">Students placed in US, UK, Singapore & UAE</div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="section" style="padding-top:0;">
+    <div class="section-tag">Top Recruiters</div>
+    <h2 class="section-title" style="margin-bottom:28px;">Our Recruiter Network</h2>
+    <div class="company-logos" id="company-logos"></div>
+  </section>
+  <section class="section" style="background:var(--surface);border-top:1px solid var(--border);">
+    <div class="section-tag">Placement Stats</div>
+    <h2 class="section-title">Department-wise CTC</h2>
+    <div class="grid-3" id="placement-dept-stats"></div>
+  </section>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- PAGE: RESEARCH -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="page" id="page-research">
+  <div class="breadcrumb"><a href="#" onclick="showPage('home')">Home</a><span class="sep">›</span><span>Research</span></div>
+  <div class="page-hero">
+    <div class="tag">Innovation & Discovery</div>
+    <h1>Research at Aetheria</h1>
+    <p>Pushing the boundaries of knowledge across disciplines. ₹24 crore in active research funding.</p>
+  </div>
+  <div class="stats-strip">
+    <div><div class="s-num">280+</div><div class="s-lbl">Papers Published / Year</div></div>
+    <div><div class="s-num">32</div><div class="s-lbl">Research Centres</div></div>
+    <div><div class="s-num">₹24Cr</div><div class="s-lbl">Funding (Active)</div></div>
+    <div><div class="s-num">48</div><div class="s-lbl">Patents Filed</div></div>
+    <div><div class="s-num">12</div><div class="s-lbl">Startups Incubated</div></div>
+  </div>
+  <section class="section">
+    <div class="section-tag">Active Projects</div>
+    <h2 class="section-title">Research Spotlight</h2>
+    <div class="grid-3" id="research-projects"></div>
+  </section>
+  <section class="section" style="background:var(--surface);border-top:1px solid var(--border);">
+    <div class="section-tag">Centres of Excellence</div>
+    <h2 class="section-title">Research Centres</h2>
+    <div class="grid-2" id="research-centres"></div>
+  </section>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- PAGE: CAMPUS LIFE -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="page" id="page-campus">
+  <div class="breadcrumb"><a href="#" onclick="showPage('home')">Home</a><span class="sep">›</span><span>Campus Life</span></div>
+  <div class="page-hero">
+    <div class="tag">Life on Campus</div>
+    <h1>Campus Life</h1>
+    <p>200 acres of vibrant community — clubs, sports, hostels, cafés, and a lot more.</p>
+  </div>
+  <section class="section">
+    <div class="section-tag">Gallery</div>
+    <h2 class="section-title" style="margin-bottom:28px;">The Aetheria Experience</h2>
+    <div class="gallery-grid">
+      <div class="gallery-item" style="height:412px;">
+  <div class="gallery-img" style="height:100%;">
+    <img src="images/library3.webp" alt="Image 1">
+  </div>
+</div>
+
+<div class="gallery-item">
+  <div class="gallery-img">
+    <img src="images/Research Expo1.webp" alt="Image 2">
+  </div>
+</div>
+
+<div class="gallery-item">
+  <div class="gallery-img">
+    <img src="images/imagerohit3.webp" alt="Image 3">
+  </div>
+</div>
+
+<div class="gallery-item">
+  <div class="gallery-img">
+    <img src="images/Sports Arena1.webp" alt="Image 4">
+  </div>
+</div>
+
+<div class="gallery-item">
+  <div class="gallery-img">
+    <img src="images/student union1.webp" alt="Image 5">
+  </div>
+</div>
+  </section>
+  <section class="section">
+    <div class="section-tag">Clubs & Societies</div>
+    <h2 class="section-title">Student Clubs</h2>
+    <div class="grid-4" id="clubs-grid"></div>
+  </section>
+  <section class="section" style="background:var(--surface);border-top:1px solid var(--border);">
+    <div class="section-tag">Facilities</div>
+    <h2 class="section-title">World-Class Facilities</h2>
+    <div class="grid-4" id="facilities-grid"></div>
+  </section>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- PAGE: STUDENTS -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="page" id="page-students">
+  <div class="breadcrumb"><a href="#" onclick="showPage('home')">Home</a><span class="sep">›</span><span>Students</span></div>
+  <div class="page-hero">
+    <div class="tag">Student Portal</div>
+    <h1>Student Dashboard</h1>
+    <p>A quick overview of your academic profile — courses, progress, and more.</p>
+  </div>
+  <section class="section">
+    <div class="dashboard-grid">
+      <div>
+        <div class="student-profile-card">
+          <div class="student-avatar">👤</div>
+          <div class="s-name">Arjun Sharma</div>
+          <div class="s-info">B.Tech Computer Science · 6th Semester<br>Roll: CS21B048 · Batch 2021–25</div>
+          <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+            <span class="tag accent">Active</span><span class="tag">Dean's List</span>
+          </div>
+          <div class="progress-bar-wrap">
+            <label><span>Credits Completed</span><span>72/160</span></label>
+            <div class="progress-bar"><div class="fill" style="width:45%"></div></div>
+          </div>
+          <div class="progress-bar-wrap">
+            <label><span>CGPA</span><span>8.6/10</span></label>
+            <div class="progress-bar"><div class="fill" style="width:86%;background:var(--accent3)"></div></div>
+          </div>
+          <div class="progress-bar-wrap">
+            <label><span>Attendance</span><span>89%</span></label>
+            <div class="progress-bar"><div class="fill" style="width:89%;background:var(--accent2)"></div></div>
+          </div>
+        </div>
+        <div style="height:16px;"></div>
+        <div class="card"><div class="card-body">
+          <h4 style="margin-bottom:12px;font-size:.9rem;">Quick Links</h4>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <button class="pill" style="text-align:left;border-radius:10px;width:100%;padding:10px 14px;">📅 View Timetable</button>
+            <button class="pill" style="text-align:left;border-radius:10px;width:100%;padding:10px 14px;">📝 Exam Schedule</button>
+            <button class="pill" style="text-align:left;border-radius:10px;width:100%;padding:10px 14px;">📚 Library Portal</button>
+            <button class="pill" style="text-align:left;border-radius:10px;width:100%;padding:10px 14px;">💰 Fee Payment</button>
+          </div>
+        </div></div>
+      </div>
+      <div>
+        <h3 style="font-weight:700;margin-bottom:16px;">Current Semester Courses</h3>
+        <div class="course-list" id="course-list"></div>
+        <div style="margin-top:28px;">
+          <h3 style="font-weight:700;margin-bottom:16px;">Recent Announcements</h3>
+          <div id="student-announcements"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- PAGE: ALUMNI -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="page" id="page-alumni">
+  <div class="breadcrumb"><a href="#" onclick="showPage('home')">Home</a><span class="sep">›</span><span>Alumni</span></div>
+  <div class="page-hero">
+    <div class="tag">Our Network</div>
+    <h1>Alumni Community</h1>
+    <p>150,000+ alumni in 80 countries. Shaping industry, policy, and culture worldwide.</p>
+  </div>
+  <div class="stats-strip">
+    <div><div class="s-num">150K+</div><div class="s-lbl">Total Alumni</div></div>
+    <div><div class="s-num">80+</div><div class="s-lbl">Countries</div></div>
+    <div><div class="s-num">42</div><div class="s-lbl">Fortune 500 CEOs</div></div>
+    <div><div class="s-num">18</div><div class="s-lbl">Cabinet Ministers</div></div>
+  </div>
+  <section class="section">
+    <div class="section-tag">Notable Alumni</div>
+    <h2 class="section-title">Our Proud Alumni</h2>
+    <div class="grid-3" id="alumni-grid"></div>
+  </section>
+  <section class="section" style="background:var(--surface);border-top:1px solid var(--border);">
+    <div class="section-tag">Stay Connected</div>
+    <h2 class="section-title">Register as Alumni</h2>
+    <div style="max-width:520px;">
+      <div class="form-grid">
+        <div class="form-group"><label>Full Name</label><input type="text" placeholder="Your name"></div>
+        <div class="form-group"><label>Graduation Year</label><input type="number" placeholder="e.g. 2018"></div>
+        <div class="form-group"><label>Department</label><input type="text" placeholder="e.g. Computer Science"></div>
+        <div class="form-group"><label>Current Company</label><input type="text" placeholder="e.g. Google"></div>
+      </div>
+      <button class="btn-primary" style="margin-top:16px;" onclick="this.textContent='✅ Registered!';this.style.background='var(--accent3)'">Register</button>
+    </div>
+  </section>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- PAGE: CONTACT -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="page" id="page-contact">
+  <div class="breadcrumb"><a href="#" onclick="showPage('home')">Home</a><span class="sep">›</span><span>Contact</span></div>
+  <div class="page-hero">
+    <div class="tag">Get in Touch</div>
+    <h1>Contact Us</h1>
+    <p>We're here to help. Reach out to the right team directly.</p>
+  </div>
+  <section class="section">
+    <div class="grid-2" style="gap:48px;">
+      <div>
+        <div class="section-tag">Send a Message</div>
+        <h2 class="section-title" style="font-size:2rem;">Write to Us</h2>
+        <div class="form-grid">
+          <div class="form-group"><label>Your Name</label><input type="text" placeholder="Full name" id="c-name"></div>
+          <div class="form-group"><label>Email</label><input type="email" placeholder="you@example.com" id="c-email"></div>
+          <div class="form-group"><label>Subject</label>
+            <select><option>Admissions Inquiry</option><option>Academic Query</option><option>Research Collaboration</option><option>Alumni Reconnect</option><option>General</option></select>
+          </div>
+          <div class="form-group"><label>Phone (optional)</label><input type="tel" placeholder="+91 ..."></div>
+          <div class="form-group" style="grid-column:span 2"><label>Message</label><textarea placeholder="How can we help?"></textarea></div>
+        </div>
+        <button class="btn-primary" style="margin-top:16px;" onclick="submitContact()">Send Message</button>
+        <div class="form-success" id="contact-success">✅ Message sent! We'll reply within 1–2 business days.</div>
+      </div>
+      <div>
+        <div class="section-tag">Reach Us</div>
+        <h2 class="section-title" style="font-size:2rem;">Contact Info</h2>
+        <div style="display:flex;flex-direction:column;gap:16px;" id="contact-info"></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-grid">
+    <div class="footer-col">
+      <div class="nav-logo" style="margin-bottom:16px;">
+        <div class="logo-mark">A</div>
+        <div class="logo-text">Aetheria University<span>Est. 1962</span></div>
+      </div>
+      <p>Shaping tomorrow's leaders through rigorous scholarship, bold research, and a commitment to public good.</p>
+      <div class="social-links" style="margin-top:20px;">
+        <a class="social-link" href="#">🐦</a>
+        <a class="social-link" href="#">💼</a>
+        <a class="social-link" href="#">📘</a>
+        <a class="social-link" href="#">📷</a>
+        <a class="social-link" href="#">▶️</a>
+      </div>
+    </div>
+    <div class="footer-col"><h4>Quick Links</h4>
+      <ul>
+        <li><a href="#" onclick="showPage('about')">About Us</a></li>
+        <li><a href="#" onclick="showPage('departments')">Departments</a></li>
+        <li><a href="#" onclick="showPage('academics')">Academics</a></li>
+        <li><a href="#" onclick="showPage('admissions')">Admissions</a></li>
+        <li><a href="#" onclick="showPage('research')">Research</a></li>
+      </ul>
+    </div>
+    <div class="footer-col"><h4>Student Resources</h4>
+      <ul>
+        <li><a href="#" onclick="showPage('students')">Student Portal</a></li>
+        <li><a href="#">Library Portal</a></li>
+        <li><a href="#">E-Learning</a></li>
+        <li><a href="#">Hostel Allotment</a></li>
+        <li><a href="#">Exam Results</a></li>
+      </ul>
+    </div>
+    <div class="footer-col"><h4>Contact</h4>
+      <ul>
+        <li><a href="#">📍 Aetheria Nagar, Bengaluru 560064</a></li>
+        <li><a href="#">📞 +91 80 2345 6789</a></li>
+        <li><a href="#">✉️ info@aetheria.edu.in</a></li>
+        <li><a href="#" onclick="showPage('contact')">Contact Form</a></li>
+        <li><a href="#">Campus Map</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2025 Aetheria University. All rights reserved. | <a href="#" style="color:var(--accent)">Privacy Policy</a> | <a href="#" style="color:var(--accent)">Terms</a></p>
+    <p style="font-size:.75rem;color:var(--muted);">NAAC Accredited A++ | NIRF Rank #12 | UGC Recognised</p>
+  </div>
+</footer>
+
+<!-- AI CHATBOT -->
+<div id="chatbox">
+  <div class="chat-header">
+    <div class="bot-icon">🤖</div>
+    <div class="bot-info">
+      <div class="name">Aria — Aetheria Assistant</div>
+      <div class="status">Online · Always here to help</div>
+    </div>
+  </div>
+  <div class="chat-messages" id="chat-messages"></div>
+  <div class="chat-suggestions" id="chat-suggestions">
+    <button class="sug-btn" onclick="sendSuggestion('How do I apply?')">Admissions?</button>
+    <button class="sug-btn" onclick="sendSuggestion('What courses are available?')">Courses?</button>
+    <button class="sug-btn" onclick="sendSuggestion('Tell me about placements')">Placements?</button>
+    <button class="sug-btn" onclick="sendSuggestion('Fee structure?')">Fees?</button>
+  </div>
+  <div class="chat-input-row">
+    <input type="text" id="chat-input" placeholder="Ask Aria anything..." onkeydown="if(event.key==='Enter')sendChat()">
+    <button class="chat-send" onclick="sendChat()">Send</button>
+  </div>
+</div>
+<button id="ai-fab" onclick="toggleChat()">🤖</button>
+
+<!-- GLOBAL SEARCH MODAL -->
+<div id="search-modal" onclick="closeSearchOut(event)">
+  <div class="search-modal-box">
+    <input class="search-modal-input" id="search-input" placeholder="Search pages, departments, faculty…" oninput="doSearch(this.value)" autofocus>
+    <div class="search-results" id="search-results"></div>
+  </div>
+</div>
+
+<script>
+  /* ═══════════════════════════════════════════════════════════
+   SUPABASE CONFIGURATION
+═══════════════════════════════════════════════════════════ */
+const SUPABASE_URL = 'https://cylkwyrlvkbeahwirczo.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN5bGt3eXJsdmtiZWFod2lyY3pvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2MDc3MDcsImV4cCI6MjA5MDE4MzcwN30.KFf_cNISPN8lMFI80fi5ofj0deo-PMFYBhMEc_pExcY'; // Replace this!
+
+const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+/* ═══════════════════════════════════════════════════════════
+   DATA
+═══════════════════════════════════════════════════════════ */
+const DEPARTMENTS = [
+  { id:'cse', name:'Computer Science & Engineering', category:'Engineering', icon:'💻', color:'dept-eng', hod:'Dr. Priya Natarajan', students:1200, programs:['B.Tech','M.Tech','PhD'], desc:'Pioneering research in AI, cybersecurity, cloud computing, and software systems. Home to the AI Innovation Lab and Cybersecurity Centre.',
+    vision:'To be a global centre of excellence in computing research and education.', mission:'Nurture innovators who build technology that solves humanity\'s greatest challenges.',
+    labs:['AI & Machine Learning Lab','Cloud Computing Centre','Cybersecurity Research Lab','Quantum Computing Lab'],
+    achievements:['Best CS Department — NIRF 2024','₹8.2Cr DST Research Grant','12 patents filed in 2024','42 students at FAANG companies'],
+    faculty:[{name:'Dr. Priya Natarajan',role:'HOD & Professor',spec:'Artificial Intelligence',c:'#c8522a'},{name:'Dr. Vikram Iyer',role:'Associate Professor',spec:'Cloud Computing',c:'#2a5c8a'},{name:'Dr. Ananya Bose',role:'Assistant Professor',spec:'Cybersecurity',c:'#3d8a5c'},{name:'Dr. Rohan Mehta',role:'Professor',spec:'Algorithms & Theory',c:'#c9a84c'},{name:'Dr. Kavya Reddy',role:'Associate Professor',spec:'Data Science',c:'#8a2a5c'},{name:'Dr. Sanjay Kumar',role:'Assistant Professor',spec:'Computer Vision',c:'#5c2a8a'}]
+  },
+  { id:'ece', name:'Electronics & Communication Engg', category:'Engineering', icon:'⚡', color:'dept-eng', hod:'Dr. Suresh Pillai', students:980, programs:['B.Tech','M.Tech','PhD'], desc:'Advancing the frontiers of VLSI, embedded systems, signal processing, and 5G communications.',
+    vision:'A department at the forefront of the electronics revolution.', mission:'Train engineers who design the hardware and communication systems of the future.',
+    labs:['VLSI Design Lab','Embedded Systems Lab','RF & Microwave Lab','5G Test Bed'],
+    achievements:['₹4.5Cr DRDO funded project','Best Paper Award — IEEE ICCSP 2024','Student team won Smart India Hackathon 2024'],
+    faculty:[{name:'Dr. Suresh Pillai',role:'HOD & Professor',spec:'VLSI Design',c:'#c8522a'},{name:'Dr. Lakshmi Nair',role:'Associate Professor',spec:'Signal Processing',c:'#2a5c8a'},{name:'Dr. Arun Mishra',role:'Assistant Professor',spec:'5G & IoT',c:'#3d8a5c'}]
+  },
+  { id:'mech', name:'Mechanical Engineering', category:'Engineering', icon:'⚙️', color:'dept-eng', hod:'Dr. Rajesh Pandey', students:850, programs:['B.Tech','M.Tech','PhD'], desc:'From thermodynamics to robotics, we cover the full spectrum of mechanical engineering with state-of-the-art fabrication facilities.',
+    vision:'Leaders in sustainable and advanced manufacturing.', mission:'Develop engineers who innovate in aerospace, automotive, and manufacturing sectors.',
+    labs:['CAD/CAM Lab','Robotics & Automation Lab','Fluid Mechanics Lab','Materials Testing Lab'],
+    achievements:['SAE Baja India — 3rd Place 2024','₹3.2Cr ISRO Collaboration','Autonomous Vehicle Research Project'],
+    faculty:[{name:'Dr. Rajesh Pandey',role:'HOD & Professor',spec:'Thermal Engineering',c:'#c8522a'},{name:'Dr. Meera Shah',role:'Associate Professor',spec:'Robotics',c:'#2a5c8a'}]
+  },
+  { id:'civil', name:'Civil & Structural Engineering', category:'Engineering', icon:'🏗️', color:'dept-eng', hod:'Dr. Kiran Murthy', students:720, programs:['B.Tech','M.Tech','PhD'], desc:'Designing the infrastructure of tomorrow — sustainable structures, smart cities, and environmental engineering.',
+    vision:'Building a resilient, sustainable world through engineering excellence.',mission:'Train civil engineers who design livable, safe, and sustainable infrastructure.',
+    labs:['Structural Testing Lab','Geotechnical Lab','Environmental Engineering Lab','Surveying Lab'],
+    achievements:['Smart Cities Mission Project Partner','National Highway Design Award 2023'],
+    faculty:[{name:'Dr. Kiran Murthy',role:'HOD & Professor',spec:'Structural Engineering',c:'#c8522a'},{name:'Dr. Pooja Joshi',role:'Associate Professor',spec:'Environmental Engg',c:'#3d8a5c'}]
+  },
+  { id:'physics', name:'Physics', category:'Science', icon:'⚛️', color:'dept-sci', hod:'Dr. Nalini Krishnan', students:420, programs:['B.Sc','M.Sc','PhD'], desc:'From quantum mechanics to astrophysics — exploring the fundamental laws that govern the universe.',
+    vision:'A department that contributes groundbreaking discoveries to physics.', mission:'Inspire a passion for understanding the physical world through observation and rigorous theory.',
+    labs:['Quantum Optics Lab','Condensed Matter Physics Lab','Astrophysics Research Centre'],
+    achievements:['2 papers in Nature Physics 2024','₹2.8Cr DST project on Quantum Computing'],
+    faculty:[{name:'Dr. Nalini Krishnan',role:'HOD & Professor',spec:'Quantum Mechanics',c:'#c8522a'},{name:'Dr. Arvind Kapoor',role:'Professor',spec:'Astrophysics',c:'#2a5c8a'},{name:'Dr. Smita Desai',role:'Assistant Professor',spec:'Condensed Matter',c:'#3d8a5c'}]
+  },
+  { id:'chemistry', name:'Chemistry', category:'Science', icon:'🧪', color:'dept-sci', hod:'Dr. Venkat Rao', students:380, programs:['B.Sc','M.Sc','PhD'], desc:'Synthesising new materials and understanding chemical processes with applications in medicine, energy, and industry.',
+    vision:'Advancing chemical sciences for health, sustainability, and discovery.',mission:'Train chemists who bridge basic research and industrial application.',
+    labs:['Organic Synthesis Lab','Analytical Chemistry Lab','Materials Chemistry Lab','Green Chemistry Lab'],
+    achievements:['Paper in Journal of ACS 2024','₹1.8Cr DST grant on Polymer Chemistry'],
+    faculty:[{name:'Dr. Venkat Rao',role:'HOD & Professor',spec:'Organic Chemistry',c:'#c8522a'},{name:'Dr. Preethi Sood',role:'Associate Professor',spec:'Analytical Chemistry',c:'#2a5c8a'}]
+  },
+  { id:'mba', name:'School of Management', category:'Management', icon:'📊', color:'dept-mgmt', hod:'Prof. Aditya Verma', students:640, programs:['MBA','PGDM','PhD'], desc:'AACSB-accredited management school preparing global business leaders with a rigorous curriculum and live projects.',
+    vision:'To be Asia\'s most innovative business school.', mission:'Develop principled, creative business leaders who drive positive economic and social change.',
+    labs:['Bloomberg Finance Lab','Business Simulation Centre','Innovation & Entrepreneurship Hub'],
+    achievements:['AACSB Accreditation 2023','Average MBA Salary ₹22 LPA','42 student startups funded'],
+    faculty:[{name:'Prof. Aditya Verma',role:'Dean & Professor',spec:'Strategy & Leadership',c:'#c8522a'},{name:'Prof. Shalini Gupta',role:'Associate Professor',spec:'Marketing',c:'#2a5c8a'},{name:'Prof. Nikhil Jain',role:'Assistant Professor',spec:'Finance',c:'#3d8a5c'},{name:'Prof. Ritu Singh',role:'Associate Professor',spec:'Operations',c:'#c9a84c'}]
+  },
+  { id:'humanities', name:'Humanities & Social Sciences', category:'Arts', icon:'📖', color:'dept-arts', hod:'Dr. Deepa Chandra', students:560, programs:['B.A','M.A','PhD'], desc:'Exploring history, literature, psychology, sociology, and economics through an interdisciplinary lens.',
+    vision:'Humanising the university experience and enriching every discipline.',mission:'Cultivate critical thinkers, communicators, and empathetic leaders.',
+    labs:['Media Studies Studio','Psychology Research Lab','Language & Linguistics Centre'],
+    achievements:['₹1.2Cr ICSSR Research Grant','Best Humanities Department — South India Rankings'],
+    faculty:[{name:'Dr. Deepa Chandra',role:'HOD & Professor',spec:'Literature & Culture',c:'#c8522a'},{name:'Dr. Mohan Das',role:'Associate Professor',spec:'Economics',c:'#2a5c8a'},{name:'Dr. Anita Pillai',role:'Assistant Professor',spec:'Psychology',c:'#c9a84c'}]
+  }
+];
+
+const EVENTS = [
+  { day:'15', mon:'Apr', title:'Annual Tech Fest — TechVista 2025', desc:'48-hour hackathon, robotics competition, and keynotes from industry leaders. 3,000+ participants.', cat:'Technical' },
+  { day:'18', mon:'Apr', title:'International Research Symposium', desc:'Researchers and scholars from 22 countries presenting cutting-edge findings across disciplines.', cat:'Research' },
+  { day:'22', mon:'Apr', title:'Cultural Night — Rang & Nritya', desc:'Annual cultural extravaganza featuring dance, music, and drama performances by students.', cat:'Cultural' },
+  { day:'30', mon:'Apr', title:'Campus Placement Drive — Phase II', desc:'180+ companies visiting for summer internships and full-time placements across all departments.', cat:'Career' },
+  { day:'5', mon:'May', title:'Alumni Homecoming Weekend', desc:'Celebrate with graduates from across decades. Panel discussions, networking, and campus tours.', cat:'Alumni' },
+  { day:'12', mon:'May', title:'Entrepreneurship Summit 2025', desc:'Pitch competitions, mentorship sessions, and a startup expo featuring 30 student ventures.', cat:'Entrepreneurship' }
+];
+
+const TESTIMONIALS = [
+  { text:'Aetheria gave me the foundation to land my dream job at Google. The professors are genuinely world-class and the peer environment is unmatched.', name:'Rohan Kapoor', batch:'B.Tech CSE, Class of 2023', av:'RK', bg:'#c8522a' },
+  { text:'The MBA programme at Aetheria opened doors I never thought possible. The Bloomberg Lab and live industry projects made all the difference.', name:'Sneha Patil', batch:'MBA 2022, Now at McKinsey', av:'SP', bg:'#2a5c8a' },
+  { text:'As an international student from Malaysia, I felt completely at home here. The research facilities are on par with any top global university.', name:'Ethan Lim', batch:'M.Tech AI, Class of 2024', av:'EL', bg:'#3d8a5c' }
+];
+
+const COMPANIES = ['Google','Microsoft','Amazon','Flipkart','Infosys','TCS','Wipro','Goldman Sachs','JP Morgan','Deloitte','McKinsey','BCG','ISRO','DRDO','Airbus','Tesla','Adobe','Salesforce','IBM','Intel','Qualcomm','Samsung','Apple','Meta','Twitter','Swiggy','Zomato','Razorpay','CRED','Paytm'];
+
+const RESEARCH_PROJECTS = [
+  { title:'AI-Powered Early Disease Detection', dept:'CSE + Biomedical', status:'ongoing', funded:'₹3.2Cr (DST)', desc:'Developing deep learning models for early detection of cancer and cardiac conditions from medical imaging data.' },
+  { title:'Next-Gen 5G Antenna Design', dept:'ECE', status:'ongoing', funded:'₹2.8Cr (DRDO)', desc:'Novel metamaterial-based antenna arrays for high-gain, beamforming 5G and beyond communications.' },
+  { title:'Quantum Key Distribution Protocol', dept:'Physics + CSE', status:'funded', funded:'₹4.1Cr (DST)', desc:'Building a quantum-secure communication infrastructure using entangled photon pairs.' },
+  { title:'Carbon-Neutral Smart City Framework', dept:'Civil + Management', status:'ongoing', funded:'₹2.2Cr (MNRE)', desc:'Integrated framework for designing and retrofitting urban areas to achieve net-zero carbon emissions.' },
+  { title:'Drug Resistance Mechanisms in TB', dept:'Chemistry + Biology', status:'completed', funded:'₹1.9Cr (ICMR)', desc:'Structural analysis of Mycobacterium tuberculosis proteins to identify novel drug targets.' },
+  { title:'Autonomous Agricultural Drone', dept:'Mech + CSE', status:'ongoing', funded:'₹1.5Cr (ICAR)', desc:'Precision agriculture drones with AI-powered crop health monitoring and targeted pesticide delivery.' }
+];
+
+const CLUBS = [
+  { name:'Robotics Club', icon:'🤖', members:280 }, { name:'Photography Society', icon:'📷', members:320 },
+  { name:'Debate & MUN', icon:'🎙️', members:180 }, { name:'Coding Club', icon:'💻', members:450 },
+  { name:'Music Circle', icon:'🎵', members:240 }, { name:'Drama & Theatre', icon:'🎭', members:160 },
+  { name:'Nature & Trekking', icon:'🏕️', members:290 }, { name:'Startup Cell', icon:'💡', members:380 }
+];
+
+const ALUMNI_DATA = [
+  { name:'Kiran Mazumdar-Shaw', role:'Executive Chairman', company:'Biocon Ltd', batch:'1971', quote:'Aetheria instilled in me the courage to pursue scientific entrepreneurship.', av:'KM', bg:'#c8522a' },
+  { name:'Sundar Rao', role:'VP Engineering', company:'Google India', batch:'1998', quote:'The rigorous CSE programme prepared me for every challenge Silicon Valley could throw.', av:'SR', bg:'#2a5c8a' },
+  { name:'Dr. Priyanka Iyer', role:'Chief Scientist', company:'ISRO', batch:'2003', quote:'Our physics labs were as good as anywhere in the world. I still use those fundamentals.', av:'PI', bg:'#3d8a5c' },
+  { name:'Vikash Chander', role:'Managing Director', company:'Goldman Sachs India', batch:'2005', quote:'The MBA gave me global perspective while staying grounded in Indian market realities.', av:'VC', bg:'#c9a84c' },
+  { name:'Ananya Krishnan', role:'Co-founder & CEO', company:'HealthTech (Series B)', batch:'2012', quote:'The startup cell at Aetheria was my first incubator. Everything followed from there.', av:'AK', bg:'#8a2a5c' },
+  { name:'Ravi Teja Namburi', role:'IAS Officer (IPS 2015)', company:'Govt of India', batch:'2010', quote:'A holistic education that sharpened not just my technical skills but civic sense too.', av:'RN', bg:'#2a8a5c' }
+];
+
+const COURSES_STUDENT = [
+  { icon:'💻', name:'Advanced Algorithms', prof:'Dr. Rohan Mehta', credits:4, grade:'A' },
+  { icon:'🌐', name:'Cloud Computing & DevOps', prof:'Dr. Vikram Iyer', credits:3, grade:'A+' },
+  { icon:'🤖', name:'Machine Learning', prof:'Dr. Priya Natarajan', credits:4, grade:'B+' },
+  { icon:'🔒', name:'Network Security', prof:'Dr. Ananya Bose', credits:3, grade:'A' },
+  { icon:'📐', name:'Linear Algebra', prof:'Dr. Sunita Sharma', credits:3, grade:'A-' }
+];
+
+const AI_RESPONSES = {
+  'apply': `To apply to Aetheria University:\n\n1️⃣ Register at the Admissions Portal\n2️⃣ Fill the application form with academic details\n3️⃣ Upload documents (marksheets, ID proof)\n4️⃣ Pay the application fee (₹1,200)\n5️⃣ Appear for entrance test / submit JEE/CAT scores\n\nDeadline: June 30, 2025. Tap "Apply Now" in the top nav to get started!`,
+  'course': `Aetheria offers 120+ programmes:\n\n🎓 UG: B.Tech (8 specialisations), B.Sc, B.A, BBA\n🎓 PG: M.Tech, MBA, M.Sc, M.A, PGDM\n🎓 Research: PhD in all departments\n\nPop over to the Academics or Departments page for detailed curricula!`,
+  'placement': `Placements 2024 Highlights:\n\n💼 96.4% placement rate\n💰 Highest CTC: ₹62 LPA (Google)\n📊 Average CTC (B.Tech): ₹18.4 LPA\n🌐 142 international offers\n🏢 420+ companies recruited\n\nTop recruiters: Google, Microsoft, McKinsey, Goldman Sachs and more!`,
+  'fee': `Approx Fee Structure (2025–26):\n\n🔵 B.Tech: ₹1.8–2.2 Lakhs / year\n🟢 MBA: ₹3.5 Lakhs / year\n🟡 M.Sc / M.Tech: ₹1.2–1.6 Lakhs / year\n🔴 PhD: Fully funded + ₹25K/month stipend\n\nScholarships available based on merit & need. Visit the Admissions page for details!`,
+  'hostel': `Hostel Info:\n\n🏠 8 residential halls (Boys + Girls separate)\n🍽️ 3 dining halls with vegetarian & non-vegetarian options\n💪 Gym, sports courts, common rooms\n📶 High-speed Wi-Fi (1 Gbps campus network)\n\nFee: ₹48,000–72,000 / year (room type dependent)`,
+  'default': `Hi! I'm Aria, Aetheria's AI assistant. I can help with:\n\n• Admissions process & deadlines\n• Course & department information\n• Placement records & companies\n• Fee structure & scholarships\n• Hostel & campus facilities\n• Events & announcements\n\nWhat would you like to know?`
+};
+
+/* ═══════════════════════════════════════════════════════════
+   PAGE NAVIGATION
+═══════════════════════════════════════════════════════════ */
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  document.querySelectorAll('.nav-links a').forEach(a => {
+    a.classList.toggle('active', a.dataset.page === id);
+  });
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  // hide dept detail when leaving depts
+  if (id !== 'departments') {
+    const d = document.getElementById('dept-detail');
+    if (d) { d.classList.remove('show'); d.innerHTML = ''; }
+    const lv = document.getElementById('dept-list-view');
+    if (lv) lv.style.display = 'block';
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   THEME
+═══════════════════════════════════════════════════════════ */
+function toggleTheme() {
+  const html = document.documentElement;
+  const dark = html.dataset.theme === 'dark';
+  html.dataset.theme = dark ? 'light' : 'dark';
+  document.getElementById('theme-toggle').textContent = dark ? '🌙' : '☀️';
+}
+
+/* ═══════════════════════════════════════════════════════════
+   MOBILE MENU
+═══════════════════════════════════════════════════════════ */
+function toggleMobile() {
+  document.getElementById('hamburger').classList.toggle('open');
+  document.getElementById('mobile-menu').classList.toggle('open');
+}
+function closeMobile() {
+  document.getElementById('hamburger').classList.remove('open');
+  document.getElementById('mobile-menu').classList.remove('open');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SCROLLED NAVBAR
+═══════════════════════════════════════════════════════════ */
+window.addEventListener('scroll', () => {
+  document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 20);
+});
+
+/* ═══════════════════════════════════════════════════════════
+   HOME PAGE RENDER
+═══════════════════════════════════════════════════════════ */
+function renderHomeDepts() {
+  const el = document.getElementById('home-depts');
+  if (!el) return;
+  el.innerHTML = DEPARTMENTS.slice(0,8).map(d => `
+    <div class="dept-card" onclick="openDept('${d.id}')">
+      <div class="dept-icon ${d.color}">${d.icon}</div>
+      <div class="dept-name">${d.name}</div>
+      <div class="dept-meta"><span>👨‍🎓 ${d.students} students</span><span>📚 ${d.programs.length} programmes</span></div>
+      <div class="dept-programs">${d.programs.map(p=>`<span class="tag">${p}</span>`).join('')}</div>
+      <div class="arrow-btn">View Department →</div>
+    </div>`).join('');
+}
+
+function renderEvents() {
+  const el = document.getElementById('events-list');
+  if (!el) return;
+  el.innerHTML = EVENTS.map(e => `
+    <div class="event-card">
+      <div class="event-date"><div class="day">${e.day}</div><div class="mon">${e.mon}</div></div>
+      <div class="event-info">
+        <div class="title">${e.title}</div>
+        <div class="desc">${e.desc}</div>
+        <div style="margin-top:8px;"><span class="tag">${e.cat}</span></div>
+      </div>
+    </div>`).join('');
+}
+
+function renderTestimonials() {
+  const el = document.getElementById('testimonials-list');
+  if (!el) return;
+  el.innerHTML = TESTIMONIALS.map(t => `
+    <div class="testimonial-card">
+      <div class="quote">"</div>
+      <div class="text">${t.text}</div>
+      <div class="author">
+        <div class="avatar" style="background:${t.bg}">${t.av}</div>
+        <div class="author-info"><div class="name">${t.name}</div><div class="batch">${t.batch}</div></div>
+      </div>
+    </div>`).join('');
+}
+
+function renderLeadership() {
+  const el = document.getElementById('leadership-list');
+  if (!el) return;
+  const leaders = [
+    {name:'Prof. Aravind Swamy', role:'Vice-Chancellor', icon:'👨‍🏫', c:'#c8522a'},
+    {name:'Prof. Malathi Rao', role:'Pro Vice-Chancellor', icon:'👩‍🏫', c:'#2a5c8a'},
+    {name:'Dr. Rajeev Nair', role:'Registrar', icon:'👨‍💼', c:'#3d8a5c'},
+    {name:'Prof. Kavitha Srinivasan', role:'Dean — Academics', icon:'👩‍💼', c:'#c9a84c'}
+  ];
+  el.innerHTML = leaders.map(l => `
+    <div class="faculty-card">
+      <div class="faculty-avatar" style="background:${l.c}">${l.icon}</div>
+      <div class="faculty-info"><div class="name">${l.name}</div><div class="role">${l.role}</div></div>
+    </div>`).join('');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   DEPARTMENTS MODULE
+═══════════════════════════════════════════════════════════ */
+let deptFilter = 'all';
+
+function renderDeptGrid() {
+  const el = document.getElementById('dept-grid');
+  if (!el) return;
+  const q = (document.getElementById('dept-search')?.value || '').toLowerCase();
+  const filtered = DEPARTMENTS.filter(d =>
+    (deptFilter === 'all' || d.category === deptFilter) &&
+    (d.name.toLowerCase().includes(q) || d.category.toLowerCase().includes(q))
+  );
+  el.innerHTML = filtered.length ? filtered.map(d => `
+    <div class="dept-card" onclick="openDept('${d.id}')">
+      <div style="display:flex;gap:14px;align-items:flex-start;">
+        <div class="dept-icon ${d.color}" style="margin-bottom:0;">${d.icon}</div>
+        <div style="flex:1">
+          <div class="dept-name">${d.name}</div>
+          <div class="dept-meta"><span>👨‍🎓 ${d.students}</span><span>📚 ${d.programs.join(' · ')}</span><span>🏛️ ${d.category}</span></div>
+        </div>
+      </div>
+      <p style="font-size:.83rem;color:var(--muted);line-height:1.6;margin:12px 0;">${d.desc.slice(0,120)}…</p>
+      <div class="dept-programs">${d.programs.map(p=>`<span class="tag">${p}</span>`).join('')}</div>
+      <div class="arrow-btn">Explore Department →</div>
+    </div>`).join('') : '<p style="color:var(--muted);grid-column:1/-1">No departments match your search.</p>';
+}
+
+function filterDepts() { renderDeptGrid(); }
+function setDeptFilter(f, btn) {
+  deptFilter = f;
+  document.querySelectorAll('#dept-filters .pill').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  renderDeptGrid();
+}
+
+function openDept(id) {
+  const d = DEPARTMENTS.find(x => x.id === id);
+  if (!d) return;
+  document.getElementById('dept-list-view').style.display = 'none';
+  const det = document.getElementById('dept-detail');
+  det.innerHTML = `
+    <div class="breadcrumb">
+      <a href="#" onclick="showPage('home')">Home</a><span class="sep">›</span>
+      <a href="#" onclick="backToDepts()">Departments</a><span class="sep">›</span>
+      <span>${d.name}</span>
+    </div>
+    <div class="dept-hero">
+      <div class="big-icon">${d.icon}</div>
+      <h1>${d.name}</h1>
+      <p class="sub">${d.desc}</p>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:20px;">
+        <span class="tag accent">HOD: ${d.hod}</span>
+        <span class="tag">👨‍🎓 ${d.students} students</span>
+        <span class="tag">📚 ${d.programs.join(' · ')}</span>
+      </div>
+    </div>
+    <div class="dept-tabs" id="dept-tabs">
+      ${['About','Programs','Faculty','Labs & Research','Achievements','Contact'].map((t,i)=>`
+        <div class="dept-tab ${i===0?'active':''}" onclick="switchDeptTab(${i},this)">${t}</div>`).join('')}
+    </div>
+    <!-- ABOUT -->
+    <div class="dept-tab-content active">
+      <div class="grid-2" style="gap:48px;">
+        <div>
+          <div class="section-tag">Vision</div>
+          <h3 style="font-family:var(--font-display);font-size:1.6rem;margin-bottom:12px;">Our Vision</h3>
+          <p style="color:var(--muted);line-height:1.8;">${d.vision}</p>
+          <div style="height:24px;"></div>
+          <div class="section-tag">Mission</div>
+          <h3 style="font-family:var(--font-display);font-size:1.6rem;margin-bottom:12px;">Our Mission</h3>
+          <p style="color:var(--muted);line-height:1.8;">${d.mission}</p>
+        </div>
+        <div>
+          <div class="section-tag">About</div>
+          <h3 style="font-family:var(--font-display);font-size:1.6rem;margin-bottom:12px;">Department Overview</h3>
+          <p style="color:var(--muted);line-height:1.8;">${d.desc}</p>
+          <div style="margin-top:24px;display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+            <div class="card"><div class="card-body"><div style="font-size:2rem;margin-bottom:8px;">👨‍🎓</div><div class="card-title2">Students</div><div style="font-family:var(--font-display);font-size:2rem;color:var(--accent);font-weight:900;">${d.students}</div></div></div>
+            <div class="card"><div class="card-body"><div style="font-size:2rem;margin-bottom:8px;">👨‍🏫</div><div class="card-title2">Faculty</div><div style="font-family:var(--font-display);font-size:2rem;color:var(--accent);font-weight:900;">${d.faculty.length}</div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- PROGRAMS -->
+    <div class="dept-tab-content">
+      <h3 style="font-weight:700;font-size:1.3rem;margin-bottom:24px;">Programmes Offered</h3>
+      <div class="programs-grid">
+        ${d.programs.map((p,i) => `
+          <div class="program-row">
+            <div class="p-icon">${['🎓','🏅','🔬'][i]||'📚'}</div>
+            <div class="p-name">${p} — ${d.name}</div>
+            <div class="p-meta">
+              <span>📅 ${p==='PhD'?'3–5 yrs':p.startsWith('M')?'2 yrs':'4 yrs'}</span>
+              <span>💰 ${p==='MBA'?'₹3.5L/yr':p==='PhD'?'Fully Funded':'₹1.8L/yr'}</span>
+            </div>
+            <span class="p-seats">${p==='PhD'?'Open':'${[60,30,120][i]||60} seats'}</span>
+          </div>`).join('')}
+      </div>
+      <div style="margin-top:32px;padding:24px;background:rgba(200,82,42,.06);border:1px solid rgba(200,82,42,.2);border-radius:var(--radius);">
+        <h4 style="margin-bottom:8px;">📋 Sample Curriculum Highlights</h4>
+        <p style="color:var(--muted);font-size:.88rem;line-height:1.8;">Core subjects, electives, laboratory components, industry projects, and research seminars form an integrated curriculum designed with academic rigor and industry relevance in mind. Detailed syllabi available on request.</p>
+      </div>
+    </div>
+    <!-- FACULTY -->
+    <div class="dept-tab-content">
+      <h3 style="font-weight:700;font-size:1.3rem;margin-bottom:24px;">Faculty Members</h3>
+      <div class="grid-2">
+        ${d.faculty.map(f => `
+          <div class="faculty-card">
+            <div class="faculty-avatar" style="background:${f.c}">${f.name.split(' ').map(w=>w[0]).join('').slice(0,2)}</div>
+            <div class="faculty-info">
+              <div class="name">${f.name}</div>
+              <div class="role">${f.role}</div>
+              <div class="spec">📌 ${f.spec}</div>
+              <div style="margin-top:8px;display:flex;gap:6px;">
+                <span class="tag" style="font-size:.7rem;">PhD</span>
+                <span class="tag" style="font-size:.7rem;">Research Active</span>
+              </div>
+            </div>
+          </div>`).join('')}
+      </div>
+    </div>
+    <!-- LABS -->
+    <div class="dept-tab-content">
+      <h3 style="font-weight:700;font-size:1.3rem;margin-bottom:24px;">Laboratories & Research Facilities</h3>
+      <div class="grid-2">
+        ${d.labs.map((lab,i) => `
+          <div class="card"><div class="card-body">
+            <div style="font-size:1.8rem;margin-bottom:12px;">${['🧪','💻','⚙️','🔬','📡','🧬'][i]||'🔬'}</div>
+            <div class="card-title2">${lab}</div>
+            <div class="card-text">State-of-the-art facility equipped with modern instruments, supporting both teaching and cutting-edge research in ${d.name.toLowerCase()}.</div>
+          </div></div>`).join('')}
+      </div>
+    </div>
+    <!-- ACHIEVEMENTS -->
+    <div class="dept-tab-content">
+      <h3 style="font-weight:700;font-size:1.3rem;margin-bottom:24px;">Achievements & Recognition</h3>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        ${d.achievements.map(a => `
+          <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 20px;display:flex;align-items:center;gap:16px;box-shadow:var(--shadow);">
+            <div style="font-size:1.5rem;">🏆</div>
+            <div style="font-weight:600;">${a}</div>
+          </div>`).join('')}
+      </div>
+    </div>
+    <!-- CONTACT -->
+    <div class="dept-tab-content">
+      <h3 style="font-weight:700;font-size:1.3rem;margin-bottom:24px;">Department Contact</h3>
+      <div class="grid-2">
+        <div class="card"><div class="card-body">
+          <h4 style="margin-bottom:16px;">Head of Department</h4>
+          <div class="faculty-card" style="box-shadow:none;border:none;padding:0;">
+            <div class="faculty-avatar" style="background:var(--accent)">${d.hod.split(' ').map(w=>w[0]).join('').slice(0,2)}</div>
+            <div class="faculty-info">
+              <div class="name">${d.hod}</div>
+              <div class="role">HOD — ${d.name}</div>
+              <div style="margin-top:8px;font-size:.8rem;color:var(--muted);">📧 hod.${d.id}@aetheria.edu.in</div>
+              <div style="font-size:.8rem;color:var(--muted);">📞 +91 80 2345 ${6700+Math.floor(Math.random()*99)}</div>
+            </div>
+          </div>
+        </div></div>
+        <div class="card"><div class="card-body">
+          <h4 style="margin-bottom:16px;">Office Details</h4>
+          <div style="display:flex;flex-direction:column;gap:10px;font-size:.88rem;color:var(--muted);">
+            <div>📍 ${d.name} Block, Aetheria University Campus, Bengaluru 560064</div>
+            <div>📞 +91 80 2345 6789 (Reception)</div>
+            <div>📧 dept.${d.id}@aetheria.edu.in</div>
+            <div>🕐 Mon–Fri, 9 AM – 5 PM</div>
+          </div>
+        </div></div>
+      </div>
+    </div>
+  `;
+  det.classList.add('show');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function backToDepts() {
+  document.getElementById('dept-list-view').style.display = 'block';
+  const det = document.getElementById('dept-detail');
+  det.classList.remove('show'); det.innerHTML = '';
+}
+
+function switchDeptTab(idx, el) {
+  const container = el.closest('#dept-detail');
+  container.querySelectorAll('.dept-tab').forEach((t,i) => t.classList.toggle('active', i===idx));
+  container.querySelectorAll('.dept-tab-content').forEach((c,i) => c.classList.toggle('active', i===idx));
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ACADEMICS PAGE
+═══════════════════════════════════════════════════════════ */
+function renderProgrammes() {
+  const el = document.getElementById('programmes-grid');
+  if (!el) return;
+  const progs = [
+    { icon:'🎓', title:'B.Tech', dur:'4 Years', desc:'8 specialisations in engineering. AICTE approved, industry-aligned curriculum with mandatory internships.', seats:640 },
+    { icon:'🏛️', title:'B.Sc / B.A / BBA', dur:'3 Years', desc:'Pure sciences, humanities, and business programmes with strong research and industry exposure.', seats:480 },
+    { icon:'🎯', title:'M.Tech / M.Sc / M.A', dur:'2 Years', desc:'Advanced specialisation in 18 disciplines. Project-heavy, research-oriented programmes.', seats:320 },
+    { icon:'📊', title:'MBA / PGDM', dur:'2 Years', desc:'AACSB-accredited flagship MBA. Live projects, Bloomberg Lab, and a 96% placement rate.', seats:180 },
+    { icon:'🔬', title:'PhD (Research)', dur:'3–5 Years', desc:'Full-time doctoral research across all departments. Fully funded with monthly stipend.', seats:120 },
+    { icon:'🌐', title:'Executive & Online', dur:'1–2 Years', desc:'Flexible online and weekend programmes for working professionals and lifelong learners.', seats:600 }
+  ];
+  el.innerHTML = progs.map(p => `
+    <div class="card">
+      <div class="card-body">
+        <div style="font-size:2.5rem;margin-bottom:12px;">${p.icon}</div>
+        <div class="card-label">${p.dur}</div>
+        <div class="card-title2">${p.title}</div>
+        <div class="card-text">${p.desc}</div>
+        <div style="margin-top:14px;display:flex;align-items:center;justify-content:space-between;">
+          <span class="tag accent">${p.seats} seats</span>
+          <button onclick="showPage('admissions')" style="font-size:.78rem;font-weight:700;color:var(--accent);">Apply →</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function renderFAQ() {
+  const el = document.getElementById('academic-faq');
+  if (!el) return;
+  const faqs = [
+    { q:'What is the minimum CGPA to graduate?', a:'Students must maintain a minimum CGPA of 5.0 on a 10-point scale. Students falling below 6.0 for two consecutive semesters are placed on academic probation.' },
+    { q:'Can I change my branch after the first year?', a:'Yes. Branch change is permitted after the first year for B.Tech students based on academic performance and availability of seats in the desired department.' },
+    { q:'What is the credit system?', a:'Aetheria follows a Choice Based Credit System (CBCS). B.Tech requires 160 credits, MBA 120 credits, and M.Tech 80 credits for graduation.' },
+    { q:'Are international exchange programmes available?', a:'Yes! Aetheria has MoUs with 48 partner universities. Students can opt for a semester exchange in Year 3 (subject to eligibility and partner availability).' },
+    { q:'How are examinations conducted?', a:'Continuous Assessment (40%) + End-Semester Exams (60%). Mid-semester exams, assignments, and lab evaluations form the continuous assessment component.' }
+  ];
+  el.innerHTML = faqs.map(f => `
+    <div class="acc-item">
+      <div class="acc-header" onclick="toggleAcc(this)">${f.q}<span class="chevron">▼</span></div>
+      <div class="acc-body">${f.a}</div>
+    </div>`).join('');
+}
+
+function renderAcademicCal() {
+  const el = document.getElementById('academic-cal');
+  if (!el) return;
+  const cal = [
+    { sem:'Odd Semester (July–Nov)', dates:[['Jul 1','Classes Begin'],['Sep 8–12','Mid-Semester Exams'],['Oct 20','Last Working Day'],['Nov 4–22','End-Semester Exams'],['Dec 1','Results Declared']] },
+    { sem:'Even Semester (Jan–May)', dates:[['Jan 6','Classes Begin'],['Mar 3–7','Mid-Semester Exams'],['Apr 18','Last Working Day'],['May 1–18','End-Semester Exams'],['Jun 1','Results Declared']] }
+  ];
+  el.innerHTML = cal.map(c => `
+    <div class="card"><div class="card-body">
+      <h4 style="font-weight:700;margin-bottom:16px;color:var(--accent);">${c.sem}</h4>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        ${c.dates.map(d=>`
+          <div style="display:flex;gap:12px;align-items:center;">
+            <span style="font-size:.78rem;font-weight:700;color:var(--accent);width:70px;flex-shrink:0;">${d[0]}</span>
+            <span style="font-size:.85rem;color:var(--muted);">${d[1]}</span>
+          </div>`).join('')}
+      </div>
+    </div></div>`).join('');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ADMISSIONS PAGE
+═══════════════════════════════════════════════════════════ */
+function renderSteps() {
+  const el = document.getElementById('steps-grid');
+  if (!el) return;
+  const steps = [
+    { n:'1', icon:'📝', title:'Register Online', desc:'Create your account on the Aetheria Admissions Portal with a valid email address.' },
+    { n:'2', icon:'📋', title:'Fill Application', desc:'Complete the application form with your academic details, preferences, and personal information.' },
+    { n:'3', icon:'📎', title:'Upload Documents', desc:'Submit mark sheets, identity proof, passport photo, and any relevant certificates.' },
+    { n:'4', icon:'💳', title:'Pay Application Fee', desc:'Pay the non-refundable application fee of ₹1,200 via net banking, UPI, or card.' },
+    { n:'5', icon:'📞', title:'Counselling Call', desc:'Shortlisted candidates will be called for a personal interview or counselling session.' },
+    { n:'6', icon:'🎓', title:'Enrolment', desc:'Receive your offer letter, pay the first-semester fee, and collect your student ID!' }
+  ];
+  el.innerHTML = steps.map(s => `
+    <div class="step-card" data-step="${s.n}">
+      <div class="step-icon">${s.icon}</div>
+      <div class="step-title">Step ${s.n}: ${s.title}</div>
+      <div class="step-desc">${s.desc}</div>
+    </div>`).join('');
+}
+
+function renderEligibility() {
+  const el = document.getElementById('eligibility-acc');
+  if (!el) return;
+  const items = [
+    { q:'B.Tech / B.Sc Eligibility', a:'10+2 with minimum 60% in Physics, Chemistry, and Mathematics. Valid JEE Main / KCET / COMEDK score. Age: 17–25 years as of July 1.' },
+    { q:'MBA / PGDM Eligibility', a:"Bachelor's degree in any discipline with minimum 55% aggregate. Valid CAT / MAT / GMAT score. Work experience preferred but not mandatory for freshers." },
+    { q:'M.Tech / M.Sc Eligibility', a:"Relevant bachelor's degree (B.Tech / B.Sc) with minimum 60%. Valid GATE score for M.Tech. For M.Sc, valid IIT JAM / departmental entrance test." },
+    { q:'PhD Eligibility', a:"Master's degree in the relevant discipline with minimum 55%. Qualifying CSIR-NET / GATE / departmental written test + interview." }
+  ];
+  el.innerHTML = items.map(i => `
+    <div class="acc-item">
+      <div class="acc-header" onclick="toggleAcc(this)">${i.q}<span class="chevron">▼</span></div>
+      <div class="acc-body">${i.a}</div>
+    </div>`).join('');
+}
+
+function renderScholarships() {
+  const el = document.getElementById('scholarships-list');
+  if (!el) return;
+  const schols = [
+    { name:'Merit Scholarship', value:'100% Tuition Fee Waiver', criteria:'Top 1% in entrance exam' },
+    { name:'Aetheria Excellence Award', value:'50% Tuition Fee', criteria:'Top 10% + family income < ₹5L/yr' },
+    { name:'Sports Excellence Grant', value:'₹60,000/yr', criteria:'State / National level athlete' },
+    { name:'Research Fellowship (PhD)', value:'₹25,000/month stipend', criteria:'All PhD students (fully funded)' }
+  ];
+  el.innerHTML = schols.map(s => `
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;">
+      <div style="font-weight:700;margin-bottom:4px;">${s.name}</div>
+      <div style="font-family:var(--font-display);font-size:1.1rem;color:var(--accent);font-weight:700;margin-bottom:4px;">${s.value}</div>
+      <div style="font-size:.8rem;color:var(--muted);">Eligibility: ${s.criteria}</div>
+    </div>`).join('');
+}
+
+function submitApp() {
+  document.getElementById('app-success').classList.add('show');
+  setTimeout(() => document.getElementById('app-success').classList.remove('show'), 5000);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   PLACEMENTS PAGE
+═══════════════════════════════════════════════════════════ */
+function renderCompanyLogos() {
+  const el = document.getElementById('company-logos');
+  if (!el) return;
+  el.innerHTML = COMPANIES.map(c => `<div class="company-badge">${c}</div>`).join('');
+}
+
+function renderPlacementStats() {
+  const el = document.getElementById('placement-dept-stats');
+  if (!el) return;
+  const stats = [
+    { dept:'Computer Science', avg:'₹22.4 LPA', high:'₹62 LPA', placed:'98%' },
+    { dept:'Electronics', avg:'₹18.2 LPA', high:'₹48 LPA', placed:'96%' },
+    { dept:'Mechanical', avg:'₹14.8 LPA', high:'₹32 LPA', placed:'93%' },
+    { dept:'MBA', avg:'₹22.1 LPA', high:'₹55 LPA', placed:'99%' },
+    { dept:'Civil', avg:'₹11.4 LPA', high:'₹24 LPA', placed:'88%' },
+    { dept:'Physics', avg:'₹12.8 LPA', high:'₹28 LPA', placed:'85%' }
+  ];
+  el.innerHTML = stats.map(s => `
+    <div class="card"><div class="card-body">
+      <div class="card-label">${s.dept}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;">
+        <div><div style="font-size:.72rem;color:var(--muted);margin-bottom:2px;">Average CTC</div><div style="font-family:var(--font-display);font-size:1.3rem;font-weight:900;color:var(--accent);">${s.avg}</div></div>
+        <div><div style="font-size:.72rem;color:var(--muted);margin-bottom:2px;">Highest CTC</div><div style="font-family:var(--font-display);font-size:1.3rem;font-weight:900;color:var(--accent2);">${s.high}</div></div>
+      </div>
+      <div style="margin-top:14px;">
+        <div style="font-size:.72rem;color:var(--muted);margin-bottom:6px;">Placement Rate</div>
+        <div class="progress-bar"><div class="fill" style="width:${s.placed}"></div></div>
+        <div style="font-size:.78rem;font-weight:700;color:var(--accent3);margin-top:4px;">${s.placed}</div>
+      </div>
+    </div></div>`).join('');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   RESEARCH PAGE
+═══════════════════════════════════════════════════════════ */
+function renderResearch() {
+  const el = document.getElementById('research-projects');
+  if (!el) return;
+  el.innerHTML = RESEARCH_PROJECTS.map(r => `
+    <div class="research-card">
+      <div class="r-status ${r.status}">${r.status.toUpperCase()}</div>
+      <div class="card-title2">${r.title}</div>
+      <div style="font-size:.78rem;color:var(--accent2);font-weight:600;margin-bottom:8px;">🏛️ ${r.dept}</div>
+      <div class="card-text">${r.desc}</div>
+      <div style="margin-top:12px;font-size:.78rem;font-weight:700;color:var(--gold);">💰 ${r.funded}</div>
+    </div>`).join('');
+}
+
+function renderResearchCentres() {
+  const el = document.getElementById('research-centres');
+  if (!el) return;
+  const centres = [
+    { name:'Centre for AI & Cognitive Sciences', icon:'🧠', desc:'Interdisciplinary research centre working on machine learning, cognitive computing, and human-AI interaction.', funding:'₹8.2 Cr', papers:'42/yr' },
+    { name:'Quantum Technologies Lab', icon:'⚛️', desc:'Developing quantum communication protocols, quantum sensing, and quantum computing hardware.', funding:'₹6.4 Cr', papers:'28/yr' },
+    { name:'Sustainable Energy Centre', icon:'♻️', desc:'Solar, wind, hydrogen, and smart grid research targeting India\'s net-zero 2070 commitments.', funding:'₹4.8 Cr', papers:'35/yr' },
+    { name:'Biomedical Engineering Institute', icon:'🧬', desc:'Combining biology, chemistry, and engineering to develop medical devices, diagnostics, and drug delivery systems.', funding:'₹5.1 Cr', papers:'31/yr' }
+  ];
+  el.innerHTML = centres.map(c => `
+    <div class="card"><div class="card-body">
+      <div style="font-size:2.5rem;margin-bottom:12px;">${c.icon}</div>
+      <div class="card-title2">${c.name}</div>
+      <div class="card-text">${c.desc}</div>
+      <div style="display:flex;gap:16px;margin-top:16px;">
+        <div><div style="font-size:.7rem;color:var(--muted);">Funding</div><div style="font-weight:700;color:var(--accent);">${c.funding}</div></div>
+        <div><div style="font-size:.7rem;color:var(--muted);">Papers/yr</div><div style="font-weight:700;color:var(--accent2);">${c.papers}</div></div>
+      </div>
+    </div></div>`).join('');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   CAMPUS LIFE PAGE
+═══════════════════════════════════════════════════════════ */
+function renderClubs() {
+  const el = document.getElementById('clubs-grid');
+  if (!el) return;
+  el.innerHTML = CLUBS.map(c => `
+    <div class="card" style="text-align:center;"><div class="card-body">
+      <div style="font-size:2rem;margin-bottom:8px;">${c.icon}</div>
+      <div class="card-title2">${c.name}</div>
+      <div style="font-size:.8rem;color:var(--muted);">👥 ${c.members} members</div>
+    </div></div>`).join('');
+}
+
+function renderFacilities() {
+  const el = document.getElementById('facilities-grid');
+  if (!el) return;
+  const facs = [
+    { icon:'📚', name:'Central Library', desc:'1.2M volumes, 24/7 digital access' },
+    { icon:'🏋️', name:'Sports Complex', desc:'Olympic pool, gym, 12 courts' },
+    { icon:'🏥', name:'Health Centre', desc:'24/7 medical facility on campus' },
+    { icon:'🍽️', name:'Food Court', desc:'8 cafeterias, 500+ seating' },
+    { icon:'🏠', name:'Hostels', desc:'8 residences, 4,800 students' },
+    { icon:'🚌', name:'Transport', desc:'52 buses covering the city' },
+    { icon:'🏦', name:'Bank & ATMs', desc:'SBI + HDFC branches on campus' },
+    { icon:'🛍️', name:'Shopping Centre', desc:'Stationery, groceries, pharmacy' }
+  ];
+  el.innerHTML = facs.map(f => `
+    <div class="card"><div class="card-body">
+      <div style="font-size:1.8rem;margin-bottom:8px;">${f.icon}</div>
+      <div class="card-title2">${f.name}</div>
+      <div class="card-text">${f.desc}</div>
+    </div></div>`).join('');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   STUDENTS PAGE
+═══════════════════════════════════════════════════════════ */
+function renderCourses() {
+  const el = document.getElementById('course-list');
+  if (!el) return;
+  el.innerHTML = COURSES_STUDENT.map(c => `
+    <div class="course-item">
+      <div class="c-icon">${c.icon}</div>
+      <div><div class="c-name">${c.name}</div><div class="c-meta">${c.prof} · ${c.credits} credits</div></div>
+      <div class="c-grade">${c.grade}</div>
+    </div>`).join('');
+}
+
+function renderStudentAnn() {
+  const el = document.getElementById('student-announcements');
+  if (!el) return;
+  const anns = [
+    { text:'End-semester examinations begin May 1, 2025. Hall tickets available from April 20.', date:'Apr 10' },
+    { text:'Internship compliance report submission deadline: April 25, 2025 (upload on portal).', date:'Apr 8' },
+    { text:'Library fine waiver scheme active until April 30. Return overdue books now.', date:'Apr 5' }
+  ];
+  el.innerHTML = anns.map(a => `
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px;display:flex;gap:12px;align-items:flex-start;">
+      <span style="font-size:.72rem;font-weight:700;color:var(--accent);white-space:nowrap;padding-top:2px;">${a.date}</span>
+      <span style="font-size:.84rem;color:var(--muted);line-height:1.6;">${a.text}</span>
+    </div>`).join('');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ALUMNI PAGE
+═══════════════════════════════════════════════════════════ */
+function renderAlumni() {
+  const el = document.getElementById('alumni-grid');
+  if (!el) return;
+  el.innerHTML = ALUMNI_DATA.map(a => `
+    <div class="alumni-card">
+      <div class="alu-photo" style="background:${a.bg}">${a.av}</div>
+      <div class="alu-name">${a.name}</div>
+      <div class="alu-role">${a.role}</div>
+      <div class="alu-company">${a.company} · Batch of ${a.batch}</div>
+      <div class="alu-quote">${a.quote}</div>
+    </div>`).join('');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   CONTACT PAGE
+═══════════════════════════════════════════════════════════ */
+function renderContactInfo() {
+  const el = document.getElementById('contact-info');
+  if (!el) return;
+  const info = [
+    { icon:'📍', title:'Address', val:'Aetheria Nagar, Near Electronic City,<br>Bengaluru, Karnataka — 560 064' },
+    { icon:'📞', title:'Phone', val:'+91 80 2345 6789 (General)<br>+91 80 2345 6800 (Admissions)' },
+    { icon:'✉️', title:'Email', val:'info@aetheria.edu.in<br>admissions@aetheria.edu.in' },
+    { icon:'🕐', title:'Office Hours', val:'Mon–Fri: 9:00 AM – 5:00 PM<br>Sat: 9:00 AM – 1:00 PM' }
+  ];
+  el.innerHTML = info.map(i => `
+    <div style="display:flex;gap:16px;align-items:flex-start;">
+      <div style="width:44px;height:44px;border-radius:12px;background:rgba(200,82,42,.1);display:grid;place-items:center;font-size:1.1rem;flex-shrink:0;">${i.icon}</div>
+      <div><div style="font-weight:700;margin-bottom:4px;">${i.title}</div><div style="font-size:.85rem;color:var(--muted);line-height:1.7;">${i.val}</div></div>
+    </div>`).join('');
+}
+
+function submitContact() {
+  document.getElementById('contact-success').classList.add('show');
+  setTimeout(() => document.getElementById('contact-success').classList.remove('show'), 5000);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ACCORDION
+═══════════════════════════════════════════════════════════ */
+function toggleAcc(header) {
+  const item = header.parentElement;
+  item.classList.toggle('open');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   AI CHATBOT
+═══════════════════════════════════════════════════════════ */
+let chatOpen = false;
+const chatHistory = [];
+
+function toggleChat() {
+  chatOpen = !chatOpen;
+  document.getElementById('chatbox').classList.toggle('show', chatOpen);
+  document.getElementById('ai-fab').classList.toggle('open', chatOpen);
+  document.getElementById('ai-fab').textContent = chatOpen ? '✕' : '🤖';
+  if (chatOpen && chatHistory.length === 0) {
+    addBotMsg("Hello! 👋 I'm Aria, Aetheria University's AI assistant. How can I help you today?");
+  }
+}
+
+function addBotMsg(text) {
+  const msgs = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.className = 'msg bot';
+  const now = new Date(); const t = now.getHours()+':'+(now.getMinutes()+'').padStart(2,'0');
+  div.innerHTML = `<div class="msg-bubble">${text.replace(/\n/g,'<br>')}</div><div class="msg-time">${t}</div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function addUserMsg(text) {
+  const msgs = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.className = 'msg user';
+  const now = new Date(); const t = now.getHours()+':'+(now.getMinutes()+'').padStart(2,'0');
+  div.innerHTML = `<div class="msg-bubble">${text}</div><div class="msg-time" style="text-align:right;">${t}</div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function showTyping() {
+  const msgs = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.className = 'msg bot'; div.id = 'typing-indicator';
+  div.innerHTML = '<div class="msg-bubble" style="padding:6px 14px;"><div class="typing"><span></span><span></span><span></span></div></div>';
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function removeTyping() {
+  const t = document.getElementById('typing-indicator');
+  if (t) t.remove();
+}
+
+function getAIResponse(msg) {
+  const m = msg.toLowerCase();
+  if (m.includes('apply') || m.includes('admission') || m.includes('how to join')) return AI_RESPONSES.apply;
+  if (m.includes('course') || m.includes('programme') || m.includes('degree')) return AI_RESPONSES.course;
+  if (m.includes('placement') || m.includes('job') || m.includes('salary') || m.includes('package')) return AI_RESPONSES.placement;
+  if (m.includes('fee') || m.includes('cost') || m.includes('tuition')) return AI_RESPONSES.fee;
+  if (m.includes('hostel') || m.includes('accommodation') || m.includes('dorm')) return AI_RESPONSES.hostel;
+  if (m.includes('department') || m.includes('cse') || m.includes('mba') || m.includes('ece')) return 'We have 18 departments spanning Engineering, Sciences, Management, and Arts. Tap "Departments" in the nav to explore each one in detail!';
+  if (m.includes('research')) return 'Aetheria has 32 research centres with ₹24 Crore in active funding. We publish 280+ papers per year. Visit our Research page for the latest projects!';
+  if (m.includes('rank') || m.includes('nirf') || m.includes('ranking')) return '🏆 Aetheria is ranked #12 Overall in NIRF 2025 — up 3 places from 2024. We are also ranked #8 in Engineering and #6 in Management.';
+  if (m.includes('event') || m.includes('fest') || m.includes('techvista')) return 'Upcoming events include TechVista 2025 (Apr 15), International Research Symposium (Apr 18), Cultural Night (Apr 22), and the Entrepreneurship Summit (May 12). Check our Home page for the full calendar!';
+  return AI_RESPONSES.default;
+}
+
+function sendChat() {
+  const inp = document.getElementById('chat-input');
+  const text = inp.value.trim();
+  if (!text) return;
+  addUserMsg(text);
+  inp.value = '';
+  showTyping();
+  setTimeout(() => {
+    removeTyping();
+    addBotMsg(getAIResponse(text));
+  }, 900 + Math.random() * 600);
+}
+
+function sendSuggestion(text) {
+  if (!chatOpen) toggleChat();
+  setTimeout(() => {
+    addUserMsg(text);
+    showTyping();
+    setTimeout(() => { removeTyping(); addBotMsg(getAIResponse(text)); }, 900);
+  }, chatOpen ? 0 : 300);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   GLOBAL SEARCH
+═══════════════════════════════════════════════════════════ */
+const SEARCH_INDEX = [
+  { icon:'🏠', title:'Home Page', sub:'University overview, stats, events', page:'home' },
+  { icon:'ℹ️', title:'About Aetheria', sub:'History, vision, mission, leadership', page:'about' },
+  { icon:'🏛️', title:'All Departments', sub:'Engineering, Science, Management, Arts', page:'departments' },
+  { icon:'📚', title:'Academics', sub:'Programmes, calendar, FAQ', page:'academics' },
+  { icon:'📋', title:'Admissions', sub:'Apply, eligibility, scholarships', page:'admissions' },
+  { icon:'💼', title:'Placements', sub:'CTC stats, companies, careers', page:'placements' },
+  { icon:'🔬', title:'Research', sub:'Projects, centres, funding', page:'research' },
+  { icon:'🌿', title:'Campus Life', sub:'Clubs, facilities, gallery', page:'campus' },
+  { icon:'👥', title:'Alumni', sub:'Notable alumni, register, network', page:'alumni' },
+  { icon:'📬', title:'Contact', sub:'Address, phone, email, form', page:'contact' },
+  ...DEPARTMENTS.map(d => ({ icon:d.icon, title:d.name, sub:`${d.category} · ${d.programs.join(', ')}`, page:'departments', deptId:d.id })),
+  ...DEPARTMENTS.flatMap(d => d.faculty.map(f => ({ icon:'👨‍🏫', title:f.name, sub:`${f.role} — ${d.name}`, page:'departments', deptId:d.id })))
+];
+
+function openSearch() {
+  document.getElementById('search-modal').classList.add('show');
+  setTimeout(() => document.getElementById('search-input').focus(), 100);
+  doSearch('');
+}
+function closeSearchOut(e) {
+  if (e.target === document.getElementById('search-modal')) {
+    document.getElementById('search-modal').classList.remove('show');
+  }
+}
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') document.getElementById('search-modal').classList.remove('show');
+  if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); openSearch(); }
+});
+
+function doSearch(q) {
+  const el = document.getElementById('search-results');
+  const items = q ? SEARCH_INDEX.filter(i =>
+    i.title.toLowerCase().includes(q.toLowerCase()) || i.sub.toLowerCase().includes(q.toLowerCase())
+  ) : SEARCH_INDEX.slice(0, 8);
+  el.innerHTML = items.length ? items.map(i => `
+    <div class="search-result-item" onclick="searchGo('${i.page}','${i.deptId||''}')">
+      <div class="sri-icon">${i.icon}</div>
+      <div><div class="sri-title">${i.title}</div><div class="sri-sub">${i.sub}</div></div>
+    </div>`).join('') : '<div style="padding:20px;text-align:center;color:var(--muted);font-size:.88rem;">No results found</div>';
+}
+function searchGo(page, deptId) {
+  document.getElementById('search-modal').classList.remove('show');
+  showPage(page);
+  if (deptId) setTimeout(() => openDept(deptId), 400);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', () => {
+  renderHomeDepts();
+  renderEvents();
+  renderTestimonials();
+  renderLeadership();
+  renderDeptGrid();
+  renderProgrammes();
+  renderFAQ();
+  renderAcademicCal();
+  renderSteps();
+  renderEligibility();
+  renderScholarships();
+  renderCompanyLogos();
+  renderPlacementStats();
+  renderResearch();
+  renderResearchCentres();
+  renderClubs();
+  renderFacilities();
+  renderCourses();
+  renderStudentAnn();
+  renderAlumni();
+  renderContactInfo();
+});
+async function submitApplication(event) {
+    event.preventDefault();
+    
+    // Select the button to show loading state
+    const btn = event.target.querySelector('button');
+    const originalText = btn.innerText;
+    btn.innerText = "Sending...";
+    btn.disabled = true;
+
+    // Map your form fields to your Supabase table columns
+    const formData = {
+        name: document.getElementById('app-name')?.value || 'N/A',
+        email: document.getElementById('app-email')?.value || 'N/A',
+        program: document.getElementById('app-program')?.value || 'General',
+        message: document.getElementById('app-message')?.value || ''
+    };
+
+    const { data, error } = await _supabase
+        .from('applications')
+        .insert([formData]);
+
+    if (error) {
+        console.error('Supabase Error:', error);
+        alert("Error: " + error.message);
+    } else {
+        alert("Thank you! Your application for Aetheria University has been received.");
+        event.target.reset();
+    }
+
+    btn.innerText = originalText;
+    btn.disabled = false;
+}
+</script>
+</body>
+</html>
