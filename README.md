@@ -65,7 +65,7 @@ const _supabase = supabase.createClient(
 );
 ```
 
-> ⚠️ **Never commit real API keys to a public repository.** For production, use environment variables or a backend proxy.
+
 
 ### 3. Create the Supabase Table
 
