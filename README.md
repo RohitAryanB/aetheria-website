@@ -1,6 +1,6 @@
 # 🎓 Aetheria University Website
 
-A modern, fully responsive university website built with vanilla HTML, CSS, and JavaScript — featuring multi-page navigation, an AI chatbot, global search, dark mode, and Supabase-powered application forms.
+A modern, fully responsive university website built with vanilla HTML, CSS, and JavaScript — featuring multi-page navigation, an AI chatbot, global search, dark mode, and Supabase-powered application forms.<br><br>Aetheria means heavan, we want the students to feel their at heavan.
 
 ---
 
