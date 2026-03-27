@@ -6,7 +6,7 @@ A modern, fully responsive university website built with vanilla HTML, CSS, and 
 
 ## 🌐 Live Demo
 
-> _Add your GitHub Pages / Netlify / Vercel link here once deployed._
+(https://ubiquitous-gaufre-1bd104.netlify.app/#)
 
 ---
 
